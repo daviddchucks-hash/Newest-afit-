@@ -412,8 +412,14 @@
                     return;
                 }
 
-                alert('Bonaza: Your account has been upgraded to Premium.');
-                setTimeout(() => { window.location.reload(); }, 800);
+                // Update local userProfile so UI checks reflect immediately
+                if (userProfile && userProfile.id === userId) {
+                    userProfile.has_paid = true;
+                    userProfile.has_qbank_access = true;
+                }
+
+                alert('Bonaza: Your account has been upgraded to Premium. Redirecting to Premium Group...');
+                setTimeout(() => { window.location.href = '../wgroup/index.html'; }, 600);
             } catch (e) {
                 console.error('Bonaza exception:', e);
                 alert('An unexpected error occurred while granting Bonaza premium.');
