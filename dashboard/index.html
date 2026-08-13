@@ -578,10 +578,31 @@
             handler.openIframe();
         }
 
-        function grantBonaza(userId) {
-            // Mimic Paystack callback behavior: show success alert and reload
-            alert('Payment successful! Verifying account upgrade.');
-            setTimeout(() => { window.location.reload(); }, 3000);
+        async function grantBonaza(userId) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .update({ has_paid: true, has_qbank_access: true })
+                    .eq('id', userId);
+
+                if (error) {
+                    console.error('Bonaza upgrade failed:', error);
+                    alert('Could not grant Bonaza premium: ' + (error.message || 'Unknown error'));
+                    return;
+                }
+
+                // Update local in-memory profile so checks become true immediately
+                if (globalProfileData && globalProfileData.id === userId) {
+                    globalProfileData.has_paid = true;
+                    globalProfileData.has_qbank_access = true;
+                }
+
+                alert('Bonaza: Your account has been upgraded to Premium. The page will refresh.');
+                setTimeout(() => { window.location.reload(); }, 1000);
+            } catch (e) {
+                console.error('Bonaza exception:', e);
+                alert('An unexpected error occurred while granting Bonaza premium.');
+            }
         }
 
         async function fetchUserHistory(userId) {
