@@ -436,7 +436,7 @@
                 return;
             }
 
-            window.location.href = '../wgroup/index.html';
+            window.location.href = '../afitcbtsim-public/wgroup/';
         }
 
         function startCountdown() {
@@ -539,7 +539,7 @@
                 
                 if (profile.has_qbank_access) {
                     showPopup = false; 
-                    actionContainer.innerHTML = `<button onclick="window.location.href='../exam-room/index.html'" class="btn-action-main btn-green">Start Premium Exam →</button> <button onclick="window.location.href='../question-bank/index.html'" class="btn-action-main btn-purple">📚 Open Question Bank</button>`;
+                    actionContainer.innerHTML = `<button onclick="window.location.href='../afitcbtsim-public/exam-room/'" class="btn-action-main btn-green">Start Premium Exam →</button> <button onclick="window.location.href='../afitcbtsim-public/question-bank/'" class="btn-action-main btn-purple">📚 Open Question Bank</button>`;
                 } else {
                     if (showPopup) {
                         document.getElementById('daily-upsell-modal').style.display = 'flex';
@@ -549,7 +549,7 @@
                         dailyQbankBtn.style.background = '#8b5cf6'; dailyQbankBtn.style.color = 'white'; dailyQbankBtn.style.cursor = 'pointer'; dailyQbankBtn.innerText = 'Unlock Vault ₦1,050'; dailyQbankBtn.onclick = () => initiateDailyPayment('qbank_access');
                         localStorage.setItem('last_upsell_date', todayStr);
                     }
-                    actionContainer.innerHTML = `<button onclick="window.location.href='../exam-room/index.html'" class="btn-action-main btn-green">Start Premium Exam →</button> <button onclick="showQbankModal('${session.user.email}', '${session.user.id}')" class="btn-action-main btn-outline-purple">📚 Unlock Question Bank</button>`;
+                    actionContainer.innerHTML = `<button onclick="window.location.href='../afitcbtsim-public/exam-room/'" class="btn-action-main btn-green">Start Premium Exam →</button> <button onclick="showQbankModal('${session.user.email}', '${session.user.id}')" class="btn-action-main btn-outline-purple">📚 Unlock Question Bank</button>`;
                 }
             } else {
                 if (showPopup) {
@@ -566,7 +566,7 @@
                     actionContainer.innerHTML = `<button onclick="showPremiumModal('${session.user.email}', '${session.user.id}')" class="btn-action-main btn-orange">👑 Unlock Full Access (₦1,050)</button>`;
                 } else {
                     statusText.innerText = `Free Tier (1 Left)`;
-                    actionContainer.innerHTML = `<button onclick="window.location.href='../exam-room/index.html'" class="btn-action-main btn-blue">Start Free Test →</button> <button onclick="showPremiumModal('${session.user.email}', '${session.user.id}')" class="btn-action-main btn-outline-orange">👑 Upgrade Now</button>`;
+                    actionContainer.innerHTML = `<button onclick="window.location.href='../afitcbtsim-public/exam-room/'" class="btn-action-main btn-blue">Start Free Test →</button> <button onclick="showPremiumModal('${session.user.email}', '${session.user.id}')" class="btn-action-main btn-outline-orange">👑 Upgrade Now</button>`;
                 }
             }
 
@@ -654,7 +654,7 @@
                         <svg style="width: 48px; height: 48px; margin-bottom: 10px; color: #cbd5e1;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                         <p style="margin: 0; font-size: 0.95rem; font-weight: 600; color: #475569;">No Analytics Yet</p>
                         <p style="margin: 5px 0 15px 0; font-size: 0.8rem; line-height: 1.5;">Take your first mock exam to generate this chart.</p>
-                        <button onclick="window.location.href='../exams/index.html'" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.8rem; transition: background 0.2s;">Take an Exam</button>
+                        <button onclick="window.location.href='../afitcbtsim-public/exams/'" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.8rem; transition: background 0.2s;">Take an Exam</button>
                     </div>
                 `;
                 trendContainer.innerHTML = emptyStateHtml;
