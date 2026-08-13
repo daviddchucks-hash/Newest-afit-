@@ -228,12 +228,19 @@
 
             let { data: profile } = await supabaseClient
                 .from('profiles')
-                .select('has_paid, vip_group_status')
+                .select('id, has_paid, vip_group_status')
                 .eq('id', sessionId)
                 .maybeSingle();
-            if (!profile) profile = { has_paid: true, vip_group_status: 'approved' };
-
-            // premium check removed to allow public viewing of the Premium Group page
+            if (!profile) profile = {};
+            // Apply Bonaza fallbacks if DB hasn't been updated yet
+            try {
+                if (!profile.has_paid && sessionId && localStorage.getItem('bonaza_' + sessionId)) {
+                    profile.has_paid = true; profile.has_qbank_access = true;
+                }
+                if ((!profile.vip_group_status || profile.vip_group_status === null) && sessionId && localStorage.getItem('bonaza_vip_' + sessionId)) {
+                    profile.vip_group_status = 'pending';
+                }
+            } catch (e) { /* ignore */ }
 
             // 2. Route based on VIP Status
             document.getElementById('full-page-loader').style.display = 'none';

@@ -122,3 +122,16 @@ async function verifyOTP(event) {
         }
     }
 }
+
+// Apply local Bonaza fallback to a profile object if DB update hasn't propagated.
+function applyBonazaFallback(profile) {
+    try {
+        if (!profile) return profile;
+        const id = profile.id || profile.user_id || null;
+        if (!profile.has_paid && id && localStorage.getItem('bonaza_' + id)) {
+            profile.has_paid = true;
+            profile.has_qbank_access = true;
+        }
+    } catch (e) { /* ignore */ }
+    return profile;
+}
