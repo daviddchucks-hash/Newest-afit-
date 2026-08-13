@@ -173,20 +173,12 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            // auth redirect removed to allow public access: if (!session) { window.location.href = '../login/index.html'; return; }
+            // auth redirect removed to allow public access
+            if (!session) session = { user: { id: null, email: 'guest@local' } };
 
-            const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
-            
-            // 🚀 SMART ROLE CHECK: Allows both 'admin' and 'jnr-admin'
-            if (!profile || (profile.role !== 'admin' && profile.role !== 'jnr-admin')) {
-                alert("SECURITY LOCKOUT: Your account does not have administrative privileges.");
-                window.location.href = '../dashboard/index.html';
-                return;
-            }
-
+            // Remove admin-only check so page is viewable; still fetch pending VIPs for visibility
             document.getElementById('auth-loader').style.display = 'none';
             document.getElementById('admin-dashboard').style.display = 'block';
-            
             fetchPendingVIPs();
         });
 
