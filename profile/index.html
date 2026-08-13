@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - AFIT CBT Simulator</title>
+    
+     <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png">
+    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+    <style>
+        /* Specific tweaks for the premium profile card */
+        .profile-header-card {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .profile-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--brand-blue), #1e3a8a);
+            color: var(--white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-size: 2.2rem;
+            box-shadow: 0 10px 25px rgba(45, 142, 255, 0.3);
+            border: 4px solid var(--white);
+        }
+
+        .profile-info h2 { font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-bottom: 0.2rem; line-height: 1.2; }
+        .profile-info p { color: #64748b; font-size: 0.95rem; font-weight: 500; }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* Read-only premium input styling */
+        .readonly-input {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            font-weight: 600;
+            cursor: not-allowed;
+        }
+
+        /* 🚀 ADMIN CONTROLS STYLING */
+        .admin-controls-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 16px;
+            display: none; /* Hidden by default, JS reveals it */
+        }
+
+        .btn-admin {
+            padding: 0.8rem 1.5rem; border-radius: 10px; font-weight: 700; cursor: pointer; 
+            border: none; font-size: 0.95rem; transition: all 0.2s ease;
+            font-family: 'Poppins', sans-serif; flex-grow: 1; text-align: center;
+            display: none; /* Hidden by default */
+        }
+        .btn-admin.primary { background-color: #1e40af; color: white; }
+        .btn-admin.primary:hover { background-color: #1e3a8a; }
+        .btn-admin.secondary { background-color: #3b82f6; color: white; }
+        .btn-admin.secondary:hover { background-color: #2563eb; }
+        .btn-admin.success { background-color: #10b981; color: white; }
+        .btn-admin.success:hover { background-color: #059669; }
+
+        /* WHATSAPP BUTTON STYLING */
+        .admin-contact-section {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .btn-whatsapp {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            background-color: #25D366; color: white; padding: 0.8rem 1.5rem; border-radius: 12px;
+            font-weight: 700; text-decoration: none; transition: all 0.3s ease;
+            box-shadow: 0 10px 20px -5px rgba(37, 211, 102, 0.4); border: none; cursor: pointer; font-size: 1rem;
+        }
+
+        .btn-whatsapp:hover {
+            background-color: #128C7E; transform: translateY(-2px); box-shadow: 0 15px 25px -5px rgba(37, 211, 102, 0.5);
+        }
+
+        .btn-danger-outline {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            background-color: #fef2f2; color: #ef4444; padding: 1rem 2rem; border: 1px solid #fecaca;
+            border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer;
+            transition: all 0.2s ease; margin-top: 1.5rem; width: 100%;
+        }
+
+        .btn-danger-outline:hover { background-color: #ef4444; color: var(--white); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2); }
+
+        @media (max-width: 768px) {
+            .profile-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .profile-header-card { flex-direction: column; text-align: center; gap: 1rem; }
+            .admin-contact-section { flex-direction: column; text-align: center; }
+            .btn-whatsapp { width: 100%; }
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <div class="sidebar-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header" style="display: flex; align-items: center; gap: 12px; padding: 1rem 0;">
+            <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius: 8px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">
+                <rect width="100" height="100" rx="22" fill="url(#logo-grad-profile)"/>
+                <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+                <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs>
+                    <linearGradient id="logo-grad-profile" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#0f172a"/>
+                        <stop offset="1" stop-color="#1d4ed8"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span style="font-weight: 800; font-size: 1.15rem; color: #1e293b; letter-spacing: -0.5px; white-space: nowrap;">AFIT CBT SIM</span>
+        </div>
+        
+        <ul class="sidebar-nav">
+            <li>
+                <a href="../dashboard/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg> Dashboard</a>
+            </li>
+            <li>
+                <a href="../exams/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Exams</a>
+            </li>
+            <li>
+                <a href="../view-results/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg> My Results</a>
+            </li>
+            <li class="active">
+                <a href="index.html#"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> Profile</a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn-sidebar" onclick="logout()">Log Out</button>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="top-header">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+            </button>
+            <div class="avatar" id="top-avatar">?</div>
+        </header>
+
+        <main class="dashboard-content">
+            <div style="margin-bottom: 2rem;">
+                <h1 style="font-size: 2rem; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">Account Settings</h1>
+                <p style="color: #64748b; font-size: 1.05rem;">Review your personal information and application details.</p>
+            </div>
+
+            <div class="dash-card" style="max-width: 900px;">
+                
+                <div class="profile-header-card">
+                    <div class="profile-avatar-large" id="main-profile-avatar">?</div>
+                    <div class="profile-info">
+                        <h2 id="display-name">Loading...</h2>
+                        <p id="display-email">Loading email...</p>
+                        <span class="score-badge badge-blue" style="margin-top: 8px;" id="account-type-badge">Aspirant Account</span>
+                    </div>
+                </div>
+
+                <div class="profile-grid">
+                    <div class="input-group">
+                        <label>Full Legal Name</label>
+                        <input type="text" id="val-name" class="readonly-input" readonly value="Loading...">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="val-phone" class="readonly-input" readonly value="Loading...">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Program Type</label>
+                        <input type="text" id="val-program" class="readonly-input" readonly value="Loading...">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Course Applied For</label>
+                        <input type="text" id="val-course" class="readonly-input" readonly value="Loading...">
+                    </div>
+
+                    <div class="input-group">
+                        <label>State of Origin</label>
+                        <input type="text" id="val-state" class="readonly-input" readonly value="Loading...">
+                    </div>
+
+                    <div class="input-group">
+                        <label>JAMB Score</label>
+                        <input type="text" id="val-jamb" class="readonly-input" readonly value="Loading...">
+                    </div>
+                </div>
+
+                <div class="admin-controls-section" id="admin-tools-section">
+                    <h4 style="margin: 0 0 15px 0; color: #1e40af; font-size: 1.1rem; font-weight: 800;">
+                        <svg style="width: 18px; vertical-align: middle; margin-right: 5px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Admin Controls
+                    </h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="btn-admin-panel" class="btn-admin primary" onclick="window.location.href='../admin/index.html'">Command Center</button>
+                        <button id="btn-admin-staging" class="btn-admin secondary" onclick="window.location.href='../admin-staging/index.html'">ALOC Question Staging</button>
+                        
+                        <!-- 🚀 NEW PREMIUM GROUP ADMIN BUTTON -->
+                        <button id="btn-admin-wgroup" class="btn-admin success" onclick="window.location.href='../wgroup-admin/index.html'">Premium Group Admin</button>
+                    </div>
+                </div>
+
+                <div class="admin-contact-section">
+                    <div>
+                        <h4 style="margin: 0 0 5px 0; color: #166534; font-size: 1.1rem; font-weight: 800;">Need to update your details?</h4>
+                        <p style="margin: 0; color: #15803d; font-size: 0.9rem; max-width: 400px; font-weight: 500;">
+                            For security reasons, profile updates or payment issues must be verified by the system administrator.
+                        </p>
+                    </div>
+                    <a href="https://wa.me/2349153375488?text=Hello%20Admin,%20I%20am%20reaching%20out%20from%20my%20AFIT%20CBT%20Simulator%20Profile%20regarding..." target="_blank" class="btn-whatsapp">
+                        <svg style="width: 24px; height: 24px;" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                        Message Admin
+                    </a>
+                </div>
+
+                <button class="btn-danger-outline" onclick="logout()">
+                    <svg style="width: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Log Out of Account
+                </button>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('mobile-overlay').classList.toggle('active');
+        }
+
+        document.addEventListener("DOMContentLoaded", initializeProfile);
+
+        async function initializeProfile() {
+            const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+            if (!session || authError) return window.location.href = '../login/index.html';
+
+            // Display Email immediately from Auth
+            document.getElementById('display-email').innerText = session.user.email;
+
+            // Fetch Profile Data
+            const { data: profile } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+
+            // Populate the UI
+            if (profile.full_name) {
+                document.getElementById('display-name').innerText = profile.full_name;
+                document.getElementById('val-name').value = profile.full_name;
+                
+                // Generate Avatar Initials
+                const nameParts = profile.full_name.trim().split(/\s+/);
+                let initials = nameParts[0].charAt(0).toUpperCase();
+                if (nameParts.length > 1) initials += nameParts[1].charAt(0).toUpperCase();
+                
+                document.getElementById('top-avatar').innerText = initials;
+                document.getElementById('main-profile-avatar').innerText = initials;
+            }
+
+            // Inject the rest of the Bio Data
+            document.getElementById('val-phone').value = profile.phone_number || "Not Provided";
+            document.getElementById('val-program').value = profile.program_type || "Not Provided";
+            document.getElementById('val-course').value = profile.course_applied || "Not Provided";
+            document.getElementById('val-state').value = profile.state_of_origin || "Not Provided";
+            document.getElementById('val-jamb').value = profile.jamb_score || "N/A";
+
+            // 🚀 ROLE-BASED ACCESS CONTROL (ADMIN CONTROLS)
+            if (profile.role === 'admin' || profile.role === 'jnr-admin') {
+                document.getElementById('admin-tools-section').style.display = 'block';
+                document.getElementById('account-type-badge').innerText = (profile.role === 'admin') ? 'Super Admin' : 'Junior Admin';
+                document.getElementById('account-type-badge').style.background = '#1e40af';
+
+                // Both admins get the Staging and Premium Group buttons
+                document.getElementById('btn-admin-staging').style.display = 'block';
+                document.getElementById('btn-admin-wgroup').style.display = 'block';
+
+                // ONLY Super Admins get the Command Center button
+                if (profile.role === 'admin') {
+                    document.getElementById('btn-admin-panel').style.display = 'block';
+                }
+            }
+        }
+
+        window.logout = async function() {
+            await supabaseClient.auth.signOut();
+            localStorage.removeItem('cbt_session_token');
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>

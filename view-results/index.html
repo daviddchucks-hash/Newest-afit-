@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Results - AFIT CBT Simulator</title>
+    
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png">
+    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* MOBILE OVERFLOW KILLER - STRICT BOX SIZING */
+        html, body { max-width: 100vw !important; overflow-x: hidden !important; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box !important; }
+
+        /* RESULTS PAGE SPECIFIC STYLES */
+        .results-wrapper {
+            animation: fadeIn 0.4s ease;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ANALYTICS CARDS */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        .analytic-card {
+            background: white; padding: 2rem; border-radius: 20px;
+            border: 1px solid #e2e8f0; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+            display: flex; align-items: center; gap: 20px;
+            width: 100%; max-width: 100%;
+        }
+
+        .analytic-icon {
+            width: 60px; height: 60px; border-radius: 15px;
+            display: flex; justify-content: center; align-items: center; flex-shrink: 0;
+        }
+        
+        .analytic-icon.blue { background: #eff6ff; color: #2563eb; }
+        .analytic-icon.green { background: #dcfce7; color: #16a34a; }
+        .analytic-icon.purple { background: #faf5ff; color: #ea580c; }
+
+        .analytic-info h4 { margin: 0 0 5px 0; font-size: 0.95rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        .analytic-info div { font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1; }
+
+        /* FULL HISTORY TABLE WITH SCROLLING FOR 115 RESULTS */
+        .full-history-section {
+            background: white; padding: 2.5rem; border-radius: 20px;
+            border: 1px solid #e2e8f0; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+            width: 100%; max-width: 100%;
+        }
+
+        .table-responsive { 
+            width: 100%; 
+            max-width: 100vw; 
+            max-height: 600px; /* Keeps the table from getting too long */
+            overflow-y: auto; 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+        }
+        
+        .data-table { width: 100%; border-collapse: collapse; white-space: nowrap; margin: 0; }
+        .data-table th { 
+            background: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; 
+            font-size: 0.85rem; padding: 1.2rem 1rem; text-align: left;
+            position: sticky; top: 0; z-index: 10; /* Sticky header */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .data-table td { padding: 1.2rem 1rem; border-bottom: 1px solid #e2e8f0; color: #1e293b; vertical-align: middle; }
+        .data-table tr:hover { background-color: #f1f5f9; transition: background 0.2s; }
+        
+        .badge-green { background: #dcfce7; color: #166534; padding: 0.4rem 1rem; border-radius: 20px; font-weight: 700; font-size: 0.9rem;}
+        .badge-orange { background: #ffedd5; color: #9a3412; padding: 0.4rem 1rem; border-radius: 20px; font-weight: 700; font-size: 0.9rem;}
+
+        /* BUTTON FOR HISTORY DOWNLOAD */
+        .dl-row-btn {
+            background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;
+            padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; font-family: 'Poppins', sans-serif; font-size: 0.85rem; white-space: nowrap;
+        }
+        .dl-row-btn:hover { background: #2563eb; color: white; box-shadow: 0 4px 10px rgba(37,99,235,0.2); }
+
+        /* HIDDEN CAPTURE CARD DESIGN */
+        #capture-area {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            width: 700px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: white;
+            padding: 50px;
+            border-radius: 24px;
+            font-family: 'Poppins', sans-serif;
+            box-sizing: border-box;
+            z-index: -100;
+        }
+
+        /* 🔥 STRICT MOBILE LOCKDOWN 🔥 */
+        @media (max-width: 900px) {
+            .dashboard-content { 
+                padding: 1rem !important; 
+                width: 100vw !important;
+                max-width: 100vw !important;
+            }
+            
+            .welcome-banner {
+                padding: 1.5rem !important;
+                border-radius: 16px !important;
+                width: 100% !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 1.5rem;
+            }
+            .welcome-text { max-width: 100% !important; }
+            .welcome-banner button { width: 100% !important; }
+
+            .analytics-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .analytic-card { padding: 1.5rem !important; }
+            .full-history-section { padding: 1.5rem !important; }
+            .data-table th, .data-table td { padding: 0.8rem 0.5rem; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <div id="capture-area">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 25px; margin-bottom: 30px;">
+            <div style="display: flex; align-items: center;">
+                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
+                    <rect width="100" height="100" rx="22" fill="#2563eb"/>
+                    <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+                    <path d="M32 54 L45 67 L75 32" stroke="#bae6fd" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div style="margin-left: 20px;">
+                    <h2 style="margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;">AFIT CBT Simulator</h2>
+                    <p style="margin: 0; color: #93c5fd; font-size: 1.1rem; font-weight: 500;">Mock Result</p>
+                </div>
+            </div>
+            <div style="text-align: right; background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 8px;">
+                <p style="margin: 0; color: #cbd5e1; font-size: 0.95rem; font-weight: 600;" id="card-date">--</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 40px;">
+            <p style="margin: 0; color: #94a3b8; font-size: 0.9rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Aspirant Profile</p>
+            <h3 style="margin: 5px 0 0 0; font-size: 2.2rem; font-weight: 800;" id="card-name">Aspirant Name</h3>
+            <p style="margin: 5px 0 0 0; color: #cbd5e1; font-size: 1.2rem; font-weight: 500;" id="card-course">Course Applied For</p>
+        </div>
+
+        <div style="display: flex; gap: 20px;">
+            <div style="background: rgba(255,255,255,0.1); padding: 30px; border-radius: 20px; flex: 1; text-align: center;">
+                <p style="margin: 0; color: #93c5fd; font-weight: 600; font-size: 1.1rem;">Post-UTME Score</p>
+                <h1 style="margin: 10px 0 0 0; font-size: 3.5rem; font-weight: 800;" id="card-score">--/50</h1>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 30px; border-radius: 20px; flex: 1; text-align: center; border: 3px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);">
+                <p style="margin: 0; color: #93c5fd; font-weight: 600; font-size: 1.1rem;">Aggregate</p>
+                <h1 style="margin: 10px 0 0 0; font-size: 3.5rem; font-weight: 800; color: #60a5fa;" id="card-agg">--%</h1>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+            <p style="margin: 0; font-size: 0.9rem; color: #64748b; font-weight: 500;">Engineered for Excellence by Brightsitedev</p>
+        </div>
+    </div>
+    <div class="sidebar-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header" style="display: flex; align-items: center; gap: 12px; padding: 1rem 0;">
+            <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius: 8px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">
+                <rect width="100" height="100" rx="22" fill="url(#logo-grad-results)"/>
+                <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+                <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs>
+                    <linearGradient id="logo-grad-results" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#0f172a"/>
+                        <stop offset="1" stop-color="#1d4ed8"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span style="font-weight: 800; font-size: 1.15rem; color: #1e293b; letter-spacing: -0.5px; white-space: nowrap;">AFIT CBT SIM</span>
+        </div>
+        
+        <ul class="sidebar-nav">
+            <li>
+                <a href="../dashboard/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg> Dashboard</a>
+            </li>
+            <li>
+                <a href="../exams/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Exams</a>
+            </li>
+            <li class="active">
+                <a href="index.html#"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg> My Results</a>
+            </li>
+            <li>
+                <a href="../profile/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> Profile</a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn-sidebar" onclick="logout()">Log Out</button>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        
+        <header class="top-header">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+            <div class="avatar" id="user-avatar">?</div>
+        </header>
+
+        <main class="dashboard-content">
+            
+            <div class="welcome-banner" style="margin-bottom: 2rem; position: relative; overflow: hidden; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 2.5rem; border-radius: 20px;">
+                <div class="welcome-text" style="position: relative; z-index: 2; max-width: 60%;">
+                    <h1 style="color: white; margin: 0 0 10px 0; font-size: 2rem;">Performance Analytics</h1>
+                    <p style="color: #93c5fd; margin: 0; font-size: 1rem; line-height: 1.5;">Review your complete examination history and track your aggregate progress over time.</p>
+                </div>
+
+                <div style="position: absolute; right: -50px; top: -50px; opacity: 0.08; pointer-events: none;">
+                    <svg width="300" height="300" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="100" cy="100" r="90" fill="#ffffff"/>
+                    </svg>
+                </div>
+                
+                <div style="position: relative; z-index: 2;">
+                    <button onclick="window.location.href='../exams/index.html'" style="background: white; color: #1e40af; border: none; padding: 1rem 1.8rem; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.15); transition: transform 0.2s; white-space: nowrap;">
+                        Take New Exam
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-wrapper">
+                
+                <div class="analytics-grid">
+                    <div class="analytic-card">
+                        <div class="analytic-icon blue">
+                            <svg style="width: 30px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        </div>
+                        <div class="analytic-info">
+                            <h4>Exams Completed</h4>
+                            <div id="stat-total-exams">0</div>
+                        </div>
+                    </div>
+
+                    <div class="analytic-card">
+                        <div class="analytic-icon green">
+                            <svg style="width: 30px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                        </div>
+                        <div class="analytic-info">
+                            <h4>Highest Aggregate</h4>
+                            <div><span id="stat-high-score">0</span><span style="font-size: 1.2rem; color: #94a3b8;">%</span></div>
+                        </div>
+                    </div>
+
+                    <div class="analytic-card">
+                        <div class="analytic-icon purple">
+                            <svg style="width: 30px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                        </div>
+                        <div class="analytic-info">
+                            <h4>Average Aggregate</h4>
+                            <div><span id="stat-avg-score">0</span><span style="font-size: 1.2rem; color: #94a3b8;">%</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="full-history-section">
+                    <h2 style="margin-top: 0; font-size: 1.5rem; color: #0f172a; margin-bottom: 1.5rem;">Recent Examination Records</h2>
+                    
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date Taken</th>
+                                    <th>Subject Breakdown</th>
+                                    <th>Post-UTME</th>
+                                    <th>Final Aggregate</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="full-history-body">
+                                <tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 3rem;">Loading your academic records...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
+
+    <script>
+        let userProfile = null;
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('mobile-overlay').classList.toggle('active');
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+            if (!session || authError) return window.location.href = '../login/index.html';
+
+            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+            userProfile = profile;
+
+            if (profile.full_name) {
+                const nameParts = profile.full_name.trim().split(/\s+/);
+                let initials = nameParts[0].charAt(0).toUpperCase();
+                if (nameParts.length > 1) initials += nameParts[1].charAt(0).toUpperCase();
+                document.getElementById('user-avatar').innerText = initials;
+            }
+
+            fetchAllHistory(session.user.id);
+        });
+
+        async function fetchAllHistory(userId) {
+            // 🚀 EXPANDED TO SHOW RECENT 115 EXAMS AS REQUESTED
+            const { data, error } = await supabaseClient
+                .from('results')
+                .select('*')
+                .eq('student_id', userId)
+                .order('submitted_at', { ascending: false })
+                .limit(115);
+                
+            const tbody = document.getElementById('full-history-body');
+            
+            if (error || !data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 3rem;">No examination records found. Complete a test to generate data.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = ''; 
+            
+            const jambScore = userProfile.jamb_score || 0;
+            const jambWeight = jambScore / 8;
+
+            let highestAggregate = 0;
+            let totalAggregateSum = 0;
+
+            data.forEach((row) => {
+                const dateObj = new Date(row.submitted_at);
+                const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const formattedTime = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                
+                const badgeClass = row.total_score >= 25 ? 'badge-green' : 'badge-orange';
+                const finalAggregate = parseFloat((jambWeight + row.total_score).toFixed(1));
+                
+                if (finalAggregate > highestAggregate) highestAggregate = finalAggregate;
+                totalAggregateSum += finalAggregate;
+
+                const allScores = [
+                    { name: 'ENG', val: row.english_score },
+                    { name: 'GNS', val: row.gns_score },
+                    { name: 'MTH', val: row.math_score },
+                    { name: 'PHY', val: row.physics_score },
+                    { name: 'CHM', val: row.chemistry_score },
+                    { name: 'ECO', val: row.economics_score },
+                    { name: 'LIT', val: row.literature_score },
+                    { name: 'GOV', val: row.government_score },
+                    { name: 'COM', val: row.commerce_score }
+                ].filter(s => s.val !== undefined && s.val !== null && s.val > 0);
+
+                if (allScores.length === 0) allScores.push({ name: 'ENG', val: 0 }); // Fallback
+
+                let breakdownHtml = `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">`;
+                allScores.forEach(s => {
+                    breakdownHtml += `<span>${s.name}: <strong>${s.val}</strong></span>`;
+                });
+                breakdownHtml += `</div>`;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <strong style="color: #0f172a;">${formattedDate}</strong><br>
+                        <span style="font-size: 0.85rem; color: #64748b;">${formattedTime}</span>
+                    </td>
+                    <td style="font-size: 0.9rem; color: #475569; line-height: 1.6;">
+                        ${breakdownHtml}
+                    </td>
+                    <td><span class="score-badge ${badgeClass}">${row.total_score} / 50</span></td>
+                    <td><strong style="font-size: 1.2rem; color: #2563eb;">${finalAggregate}%</strong></td>
+                    <td>
+                        <button class="dl-row-btn" onclick="downloadHistoryResult('${formattedDate}', '${row.total_score}', '${finalAggregate}', this)">
+                            Download
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('stat-total-exams').innerText = data.length;
+            document.getElementById('stat-high-score').innerText = highestAggregate;
+            
+            const averageAggregate = (totalAggregateSum / data.length).toFixed(1);
+            document.getElementById('stat-avg-score').innerText = averageAggregate;
+        }
+
+        // 🚀 DYNAMIC DOWNLOAD ENGINE FOR HISTORY ROWS
+        function downloadHistoryResult(dateString, putmeScore, aggregate, btnElement) {
+            const originalText = btnElement.innerHTML;
+            btnElement.innerHTML = 'Generating...';
+            btnElement.disabled = true;
+
+            // 1. Populate the hidden card with THIS row's specific data
+            document.getElementById('card-date').innerText = dateString;
+            document.getElementById('card-name').innerText = userProfile.full_name || 'Aspirant';
+            document.getElementById('card-course').innerText = userProfile.course_applied || 'General Assessment';
+            document.getElementById('card-score').innerText = putmeScore + ' / 50';
+            document.getElementById('card-agg').innerText = aggregate + '%';
+
+            const captureArea = document.getElementById('capture-area');
+            
+            // 2. Bring the card into view instantly (behind the scenes)
+            captureArea.style.left = '0';
+            
+            // 3. Take the screenshot
+            html2canvas(captureArea, { scale: 2, backgroundColor: null }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `AFIT_Mock_Result_${dateString.replace(/ /g, '_')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // Hide card and restore button
+                captureArea.style.left = '-9999px';
+                btnElement.innerHTML = originalText;
+                btnElement.disabled = false;
+            }).catch(err => {
+                console.error("Image generation failed", err);
+                captureArea.style.left = '-9999px';
+                btnElement.innerHTML = originalText;
+                btnElement.disabled = false;
+                alert("Could not generate image. Please try again.");
+            });
+        }
+
+        window.logout = async function() {
+            await supabaseClient.auth.signOut();
+            localStorage.removeItem('cbt_session_token');
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>
