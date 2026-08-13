@@ -313,9 +313,10 @@
             const examData = JSON.parse(rawExamData);
             
             const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
-            if (!session || authError) return window.location.href = '../login/index.html';
+            // auth redirect removed to allow public access: if (!session || authError) return window.location.href = '../login/index.html';
 
-            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+            let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session?.user?.id).maybeSingle();
+            if (!profile) profile = {};
             
             if (profile.full_name) {
                 const nameParts = profile.full_name.trim().split(/\s+/);

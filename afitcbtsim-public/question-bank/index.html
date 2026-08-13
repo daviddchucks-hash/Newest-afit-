@@ -226,15 +226,13 @@
         // 🚀 SMART INITIALIZATION ENGINE
         document.addEventListener("DOMContentLoaded", async () => {
             const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
-            if (!session || authError) return window.location.href = '../login/index.html';
+            // auth redirect removed to allow public access: if (!session || authError) return window.location.href = '../login/index.html';
 
-            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
-            
-            if (!profile.has_qbank_access && profile.role !== 'admin' && profile.role !== 'jnr-admin') {
-                alert("SECURITY LOCK: You do not have access to the Question Bank Vault. Please unlock it from your dashboard.");
-                window.location.href = '../dashboard/index.html';
-                return;
-            }
+            // attempt to load profile where available, otherwise continue with an empty profile
+            let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session?.user?.id).maybeSingle();
+            if (!profile) profile = { course_applied: '', role: '', has_qbank_access: true };
+
+            // access check removed to allow public viewing of the question bank
 
             // 🚀 DYNAMIC SUBJECT FILTER LOGIC
             const course = profile.course_applied || "";

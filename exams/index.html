@@ -317,7 +317,7 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
-            if (!session || authError) return window.location.href = '../login/index.html';
+            // auth redirect removed to allow public access: if (!session || authError) return window.location.href = '../login/index.html';
 
             currentUserEmail = session.user.email;
             currentUserId = session.user.id;

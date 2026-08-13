@@ -490,10 +490,12 @@
 
         async function initializeDashboard() {
             const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
-            if (!session || authError) return window.location.href = '../login/index.html';
+            // auth redirect removed to allow public access
+            if (!session) session = { user: { email: 'guest@local', id: null } };
 
             sessionEmail = session.user.email; sessionId = session.user.id;
-            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+            let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+            if (!profile) profile = {};
             globalProfileData = profile; 
 
             const { data: resultsData } = await supabaseClient.from('results').select('id').eq('student_id', session.user.id);

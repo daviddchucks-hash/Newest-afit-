@@ -336,11 +336,7 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            
-            if (!session) {
-                window.location.href = '../login/index.html?mode=admin';
-                return;
-            }
+            // auth redirect removed to allow public access: if (!session) { window.location.href = '../login/index.html?mode=admin'; return; }
 
             const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
             

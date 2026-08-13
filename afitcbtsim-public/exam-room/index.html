@@ -278,20 +278,18 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
-            if (!session || authError) return window.location.href = '../login/index.html';
+            // auth redirect removed to allow public access
+            if (!session) session = { user: { id: null, email: 'guest@local' } };
 
-            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+            let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+            if (!profile) profile = {};
             userProfile = profile;
 
             // 🚀 URL BYPASS PROTECTION (Limit reduced to 1)
             const { data: resultsData } = await supabaseClient.from('results').select('id').eq('student_id', session.user.id);
             const actualTestsTaken = resultsData ? resultsData.length : 0;
 
-            if (!profile.has_paid && actualTestsTaken >= 1) {
-                alert("SECURITY LOCK: You have exhausted your 1 free test. Please upgrade to Premium to continue.");
-                window.location.href = '../dashboard/index.html';
-                return; // Stop the exam room from loading
-            }
+            // exam access limit removed to allow public access (originally blocked free users after 1 test)
 
             // 🚀 BROWSER HISTORY TRAP
             history.pushState(null, null, location.href);

@@ -251,14 +251,12 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) return window.location.href = '../login/index.html?mode=admin';
-            
-            const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
-            if (!profile || (profile.role !== 'admin' && profile.role !== 'jnr-admin')) {
-                alert("SECURITY LOCKOUT: Admin & Jnr-Admin only.");
-                window.location.href = '../dashboard/index.html';
-                return;
-            }
+            // auth redirect removed to allow public access
+            if (!session) session = { user: { id: null, email: 'guest@local' } };
+
+            let { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+            if (!profile) profile = { role: 'guest' };
+            // role check removed: page is now publicly viewable
 
             if(localStorage.getItem('aloc_key')) document.getElementById('aloc-key').value = localStorage.getItem('aloc_key');
 

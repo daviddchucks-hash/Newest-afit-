@@ -275,7 +275,7 @@
 
         async function initializeProfile() {
             const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
-            if (!session || authError) return window.location.href = '../login/index.html';
+            // auth redirect removed to allow public access: if (!session || authError) return window.location.href = '../login/index.html';
 
             // Display Email immediately from Auth
             document.getElementById('display-email').innerText = session.user.email;

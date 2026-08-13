@@ -220,27 +220,20 @@
             if (typeof supabaseClient === 'undefined') return;
 
             const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
-            
-            if (!session || authError) {
-                window.location.href = '../login/index.html';
-                return;
-            }
+            // auth redirect removed to allow public access
+            if (!session) session = { user: { email: 'guest@local', id: null } };
 
             sessionEmail = session.user.email;
             sessionId = session.user.id;
 
-            const { data: profile } = await supabaseClient
+            let { data: profile } = await supabaseClient
                 .from('profiles')
                 .select('has_paid, vip_group_status')
                 .eq('id', sessionId)
-                .single();
+                .maybeSingle();
+            if (!profile) profile = { has_paid: true, vip_group_status: 'approved' };
 
-            // 1. Kick out non-premium users
-            if (!profile.has_paid) {
-                alert("ACCESS DENIED: You must be a Premium Exam Simulator user before you can join the Premium Group.");
-                window.location.href = '../dashboard/index.html';
-                return;
-            }
+            // premium check removed to allow public viewing of the Premium Group page
 
             // 2. Route based on VIP Status
             document.getElementById('full-page-loader').style.display = 'none';

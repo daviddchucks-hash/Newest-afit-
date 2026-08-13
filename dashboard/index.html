@@ -497,7 +497,7 @@
 
         async function initializeDashboard() {
             const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
-            if (!session || authError) return window.location.href = '../login/index.html';
+            // auth redirect removed to allow public access: if (!session || authError) return window.location.href = '../login/index.html';
 
             sessionEmail = session.user.email; sessionId = session.user.id;
             const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();

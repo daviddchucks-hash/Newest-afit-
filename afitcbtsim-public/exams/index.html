@@ -309,12 +309,14 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
-            if (!session || authError) return window.location.href = '../login/index.html';
+            // auth redirect removed to allow public access
+            if (!session) session = { user: { email: 'guest@local', id: null } };
 
             currentUserEmail = session.user.email;
             currentUserId = session.user.id;
 
-            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+            let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+            if (!profile) profile = {};
             userProfile = profile;
 
             if (profile.full_name) {
