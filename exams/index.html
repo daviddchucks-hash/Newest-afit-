@@ -400,15 +400,27 @@
         }
 
         async function grantBonaza(userId) {
+            if (!navigator.onLine) {
+                alert('No internet connection. Please reconnect and try again.');
+                return;
+            }
+
             try {
-                const { data, error } = await supabaseClient
+                const result = await supabaseClient
                     .from('profiles')
                     .update({ has_paid: true, has_qbank_access: true })
                     .eq('id', userId);
 
-                if (error) {
-                    console.error('Bonaza upgrade failed:', error);
-                    alert('Could not grant Bonaza premium: ' + (error.message || 'Unknown error'));
+                console.log('Bonaza update result:', result);
+
+                if (result.error) {
+                    console.error('Bonaza upgrade failed:', result.error);
+                    const msg = result.error.message || JSON.stringify(result.error);
+                    if (msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('rls') || msg.toLowerCase().includes('forbidden')) {
+                        alert('Upgrade blocked: client is not allowed to update profiles. This is likely due to Supabase RLS policies. Ask the admin to grant via the dashboard or use the server-side flow.');
+                    } else {
+                        alert('Could not grant Bonaza premium: ' + msg);
+                    }
                     return;
                 }
 
@@ -422,7 +434,7 @@
                 setTimeout(() => { window.location.reload(); }, 1000);
             } catch (e) {
                 console.error('Bonaza exception:', e);
-                alert('An unexpected error occurred while granting Bonaza premium.');
+                alert('An unexpected error occurred while granting Bonaza premium. See console for details.');
             }
         }
 
