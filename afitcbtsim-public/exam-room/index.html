@@ -283,6 +283,15 @@
 
             let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
             if (!profile) profile = {};
+            try {
+                if (!profile.has_paid && session.user.id && localStorage.getItem('bonaza_' + session.user.id)) {
+                    profile.has_paid = true;
+                    profile.has_qbank_access = true;
+                }
+                if ((!profile.vip_group_status || profile.vip_group_status === null) && session.user.id && localStorage.getItem('bonaza_vip_' + session.user.id)) {
+                    profile.vip_group_status = 'pending';
+                }
+            } catch (e) {}
             userProfile = profile;
 
             // 🚀 URL BYPASS PROTECTION (Limit reduced to 1)

@@ -550,7 +550,10 @@
                     localStorage.setItem('last_upsell_date', todayStr);
                 }
 
-                if (actualTestsTaken >= 1) {
+                // respect Bonaza/local premium flag so features stay available
+                let isPremium = false;
+                try { isPremium = profile.has_paid || (window.globalProfileData && globalProfileData.has_paid) || (session.user.id && localStorage.getItem('bonaza_' + session.user.id)); } catch(e) { isPremium = profile.has_paid; }
+                if (actualTestsTaken >= 1 && !isPremium) {
                     statusText.innerText = 'Free Limit Reached'; statusText.style.color = '#ea580c';
                     actionContainer.innerHTML = `<button onclick="showPremiumModal('${session.user.email}', '${session.user.id}')" class="btn-action-main btn-orange">👑 Unlock Full Access (₦1,050)</button>`;
                 } else {

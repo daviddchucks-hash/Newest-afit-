@@ -349,7 +349,10 @@
             launchContainer.innerHTML = '';
 
             // 🚀 DEPENDENCY ENFORCEMENT ENGINE
-            if (profile.has_paid) {
+            // Treat Bonaza/local flags as premium for UI gating
+            let isPremium = false;
+            try { isPremium = profile.has_paid || (userProfile && userProfile.has_paid) || (currentUserId && localStorage.getItem('bonaza_' + currentUserId)); } catch (e) { isPremium = profile.has_paid; }
+            if (isPremium) {
                 planStatus.innerText = "Premium Plan Active";
                 
                 if (profile.has_qbank_access) {
@@ -364,7 +367,7 @@
                     `;
                 }
             } else {
-                if (actualTestsTaken >= 1) {
+                if (actualTestsTaken >= 1 && !isPremium) {
                     planStatus.innerText = "Free Limit Reached (1/1)";
                     launchContainer.innerHTML = `
                         <button class="btn-action-main btn-orange" onclick="showPremiumModal('${session.user.email}', '${session.user.id}')">👑 Unlock Full Access (₦1,050)</button>
