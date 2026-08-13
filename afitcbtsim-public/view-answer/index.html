@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Answers - AFIT CBT Simulator</title>
+    
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { background-color: #f1f5f9; color: #0f172a; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+        
+        .review-nav {
+            height: 70px; background: #0f172a; color: white; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 5%; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .review-container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; display: flex; flex-direction: column; gap: 2rem; }
+        
+        .question-card {
+            background: white; padding: 2.5rem; border-radius: 20px; border: 1px solid #e2e8f0; 
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+        }
+
+        .q-meta { color: #64748b; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 1rem; }
+        .q-text { font-size: 1.15rem; line-height: 1.7; font-weight: 500; margin-bottom: 2rem; color: #1e293b; }
+
+        .option-box { display: flex; align-items: center; padding: 1rem 1.5rem; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 1rem; }
+        
+        .opt-letter { width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0; display: flex; justify-content: center; align-items: center; font-weight: 800; margin-right: 15px; color: #475569; }
+        .opt-text { font-size: 1rem; color: #334155; }
+
+        /* 🚀 HIGHLIGHT STYLES */
+        .option-box.correct { background: #dcfce7; border-color: #16a34a; }
+        .option-box.correct .opt-letter { background: #16a34a; color: white; }
+        
+        .option-box.wrong { background: #fef2f2; border-color: #dc2626; }
+        .option-box.wrong .opt-letter { background: #dc2626; color: white; }
+
+        .status-badge { padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 800; }
+        .badge-correct { background: #dcfce7; color: #16a34a; }
+        .badge-wrong { background: #fef2f2; color: #dc2626; }
+        .badge-unanswered { background: #f1f5f9; color: #64748b; }
+
+        /* 🚀 WHATSAPP BUTTON STYLE */
+        .wa-report-btn {
+            display: inline-flex; align-items: center; justify-content: center; background: #25D366; color: white; 
+            width: 32px; height: 32px; border-radius: 50%; text-decoration: none; box-shadow: 0 4px 10px rgba(37,211,102,0.3); 
+            transition: transform 0.2s;
+        }
+        .wa-report-btn:hover { transform: scale(1.1); }
+
+        @media (max-width: 600px) {
+            .question-card { padding: 1.5rem; }
+            .q-meta { flex-direction: column; align-items: flex-start; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="review-nav">
+        <div style="font-weight: 800; font-size: 1.2rem;">AFIT CBT | Paper Review</div>
+        <button onclick="window.location.href='../dashboard/index.html'" style="background: #2563eb; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer;">Exit Review</button>
+    </nav>
+
+    <div class="review-container" id="review-canvas">
+        <div style="text-align: center; margin-top: 3rem; color: #64748b; font-size: 1.2rem;">Generating paper review...</div>
+    </div>
+
+    <script>
+        const MOJIBAKE_MAP = {
+            "a\u0161": "\\sqrt{", "â€²â€²": "-", "âr′": "-", "\\l_s": "\\theta", "\\l,": "\\theta", "i\\in": "\\pi", "Î\\_s": "\\theta",
+            "kgmal": "kgm^{-3}", "Nma 2": "Nm^{-2}", "msâˆ’1": "ms^{-1}", "msâˆ’2": "ms^{-2}",
+            "â€™": "'", "â€˜": "'", "â€œ": '"', "â€": '"', "â€": '"', "â€š": "‚", "â€ž": "„", "â€“": "-", "â€”": "-", "â€¦": "...", "â€¢": "•",
+            "â‚¬": "€", "Â£": "£", "â‚¦": "₦", "âˆ’": "−", "â‰¡": "≡", "â‰ˆ": "≈", "âˆ¼": "∼", "âˆ": "∝", "âˆ«": "∫", "âˆ‘": "∑", "âˆЏ": "∏", "âˆ†": "Δ", "âˆ‡": "∇",
+            "âˆˆ": "∈", "âˆ‰": "∉", "âˆ©": "∩", "âˆª": "∪", "âˆ´": "∴", "âˆµ": "∵", "âˆ—": "∗", "âˆ˜": "∘", "âŠ‚": "⊂", "âŠƒ": "⊃", "âŠ†": "⊆", "âŠ‡": "⊇",
+            "âŠ•": "⊕", "âŠ—": "⊗", "âŠ¥": "⊥", "â‹…": "⋅", "Ã—": "×", "Ã·": "÷", "Â°": "°", "Â±": "±", "â‰ ": "≠", "â‰¤": "≤", "â‰¥": "≥", "âˆž": "∞", "âˆš": "√",
+            "Â²": "^2", "Â³": "^3", "Â¹": "^1", "Â¼": "¼", "Â½": "½", "Â¾": "¾", "â†’": "→", "â‡Œ": "⇌", "â†": "←", "â†‘": "↑", "â†“": "↓", "â†”": "↔",
+            "â‡’": "⇒", "â‡": "⇐", "â‡‘": "⇑", "â‡“": "⇓", "â‡”": "⇔",
+            "Î±": "α", "Î²": "β", "Î³": "γ", "Î´": "δ", "Îµ": "ε", "Î¶": "ζ", "Î·": "η", "Î¸": "θ", "Î¹": "ι", "Îº": "κ", "Î»": "λ", "Î¼": "μ", "Âµ": "μ",
+            "Î½": "ν", "Î¾": "ξ", "Î¿": "ο", "Ï€": "π", "Ï": "ρ", "Ï‚": "ς", "Ïƒ": "σ", "Ï„": "τ", "Ï…": "υ", "Ï†": "φ", "Ï‡": "χ", "Ïˆ": "ψ", "Ï‰": "ω", "Â": " " 
+        };
+        const MOJIBAKE_KEYS = Object.keys(MOJIBAKE_MAP).sort((a, b) => b.length - a.length);
+
+        function prepText(txt) {
+            if (!txt) return "";
+            let c = txt;
+            for (let i = 0; i < MOJIBAKE_KEYS.length; i++) {
+                c = c.split(MOJIBAKE_KEYS[i]).join(MOJIBAKE_MAP[MOJIBAKE_KEYS[i]]);
+            }
+            const mathCommands = ['\\frac', '\\theta', '\\pi', '\\sqrt', '\\alpha', '\\beta', '\\int', '\\sum', '\\sin', '\\cos', '\\tan', '^'];
+            const hasMath = mathCommands.some(cmd => c.includes(cmd));
+            const hasDelimiters = c.includes('$') || c.includes('\\(') || c.includes('\\[');
+            if (hasMath && !hasDelimiters) c = '\\( ' + c + ' \\)';
+            return c;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const examDataStr = localStorage.getItem('cbt_recent_exam');
+            if (!examDataStr) {
+                alert("No recent exam data found. Redirecting to dashboard.");
+                window.location.href = '../dashboard/index.html';
+                return;
+            }
+
+            const examData = JSON.parse(examDataStr);
+            const questions = examData.questions;
+            const userAnswers = examData.userAnswers;
+            const canvas = document.getElementById('review-canvas');
+            
+            canvas.innerHTML = ''; // Clear loading text
+
+            questions.forEach((q, index) => {
+                const userAns = (userAnswers[index] || "").toUpperCase().trim();
+                const actualAns = (q.correct_answer || q.answer || "").toUpperCase().trim();
+                const shortId = q.short_id || q.id || 'N/A';
+                
+                let statusHtml = '';
+                if (!userAns) {
+                    statusHtml = `<span class="status-badge badge-unanswered">Unanswered</span>`;
+                } else if (userAns === actualAns) {
+                    statusHtml = `<span class="status-badge badge-correct">Correct ✓</span>`;
+                } else {
+                    statusHtml = `<span class="status-badge badge-wrong">Incorrect ✕</span>`;
+                }
+
+                // Determine option classes
+                const getClass = (letter) => {
+                    if (letter === actualAns) return 'correct';
+                    if (letter === userAns && userAns !== actualAns) return 'wrong';
+                    return '';
+                };
+
+                const cardHtml = `
+                    <div class="question-card">
+                        <div class="q-meta">
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <span style="color: #2563eb;">${(q.subject || "Subject").toUpperCase()} • Q${index + 1}</span>
+                            </div>
+                            ${statusHtml}
+                        </div>
+                        <div class="q-text">
+                            ${prepText(q.question_text)}
+                            <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+                                <span style="display: inline-flex; align-items: center; gap: 5px; background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.5px;">
+                                    <svg style="width: 14px; height: 14px; color: #94a3b8;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"></path></svg>
+                                    Report ID: ${shortId}
+                                </span>
+                                <a href="https://wa.me/2347040768581?text=Hello%20admin%20I%20think%20there%20is%20an%20issue%20with%20this%20question%20with%20report%20ID%20${shortId}%20kindly%20review%20it" target="_blank" class="wa-report-btn" title="Report issue via WhatsApp">
+                                    <svg style="width: 16px; height: 16px;" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="option-box ${getClass('A')}">
+                            <div class="opt-letter">A</div> <span class="opt-text">${prepText(q.option_a)}</span>
+                        </div>
+                        <div class="option-box ${getClass('B')}">
+                            <div class="opt-letter">B</div> <span class="opt-text">${prepText(q.option_b)}</span>
+                        </div>
+                        <div class="option-box ${getClass('C')}">
+                            <div class="opt-letter">C</div> <span class="opt-text">${prepText(q.option_c)}</span>
+                        </div>
+                        <div class="option-box ${getClass('D')}">
+                            <div class="opt-letter">D</div> <span class="opt-text">${prepText(q.option_d || q.option_D)}</span>
+                        </div>
+                    </div>
+                `;
+                canvas.innerHTML += cardHtml;
+            });
+
+            // Trigger MathJax to render equations
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        });
+    </script>
+</body>
+</html>

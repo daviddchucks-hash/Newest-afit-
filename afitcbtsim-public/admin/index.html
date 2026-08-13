@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Command Center - AFIT CBT Simulator</title>
+    
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png">
+    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        body { background-color: #f1f5f9; color: #0f172a; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        #auth-loader {
+            position: fixed; inset: 0; background: #0f172a; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;
+        }
+
+        #admin-dashboard { display: none; }
+        
+        .admin-nav {
+            height: 70px; background: #0f172a; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 5%; border-bottom: 1px solid #1e293b; position: sticky; top: 0; z-index: 100;
+            color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .admin-nav-title { font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        
+        .admin-wrapper { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
+
+        .header-actions {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 15px;
+        }
+
+        /* 🚀 VERTICAL LIST KPI LAYOUT */
+        .kpi-grid { 
+            display: flex; flex-direction: column; gap: 15px; width: 100%; margin-bottom: 2rem;
+        }
+        
+        .kpi-card {
+            background: white; padding: 1.2rem 2rem; border-radius: 16px; border: 1px solid #e2e8f0;
+            box-shadow: 0 5px 15px -5px rgba(0,0,0,0.05); display: flex; flex-direction: row; justify-content: space-between; align-items: center;
+            position: relative; overflow: hidden; transition: transform 0.2s;
+        }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -5px rgba(0,0,0,0.1); }
+        
+        .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: #cbd5e1; }
+        .kpi-card.blue::before { background: #3b82f6; }
+        .kpi-card.green::before { background: #10b981; }
+        .kpi-card.purple::before { background: #8b5cf6; }
+        .kpi-card.orange::before { background: #f97316; }
+        .kpi-card.indigo::before { background: #4f46e5; }
+
+        .kpi-title { color: #475569; font-size: 1.05rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin: 0;}
+        .kpi-value { font-size: 2.2rem; font-weight: 800; color: #0f172a; line-height: 1; font-family: 'Poppins', monospace; margin: 0;}
+
+        /* TABS */
+        .tabs-container { margin-bottom: 1.5rem; display: flex; gap: 10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; overflow-x: auto;}
+        .tab-btn {
+            background: transparent; border: none; padding: 0.8rem 1.5rem; font-family: 'Poppins'; font-weight: 700;
+            font-size: 0.95rem; color: #64748b; cursor: pointer; border-radius: 8px; transition: all 0.2s; white-space: nowrap;
+        }
+        .tab-btn:hover { background: #e2e8f0; color: #0f172a; }
+        .tab-btn.active { background: #0f172a; color: white; box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);}
+
+        /* DATA PANELS */
+        .data-panel {
+            background: white; padding: 1.5rem; border-radius: 24px; border: 1px solid #e2e8f0;
+            box-shadow: 0 15px 35px -10px rgba(0,0,0,0.05); display: none;
+        }
+        .data-panel.active { display: block; animation: fadeIn 0.4s ease; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .table-container { width: 100%; overflow-x: auto; max-height: 60vh; }
+
+        /* DEMOGRAPHICS GRID */
+        .demo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .course-stat-card {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.2rem;
+            display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;
+        }
+        .course-stat-card:hover { background: #f1f5f9; }
+        .course-name { font-weight: 700; color: #1e293b; font-size: 0.95rem; word-break: break-word; padding-right: 10px;}
+        .course-count { background: #dbeafe; color: #1d4ed8; padding: 0.5rem 1rem; border-radius: 12px; font-weight: 800; font-size: 1rem; flex-shrink: 0;}
+
+        /* BUTTONS */
+        .btn-action {
+            background: white; border: 1px solid #cbd5e1; padding: 0.8rem 1.5rem; border-radius: 10px; 
+            font-weight: 700; cursor: pointer; color: #1e293b; transition: all 0.2s; font-family: 'Poppins'; font-size: 0.95rem;
+            display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .btn-action:hover { background: #f1f5f9; transform: translateY(-1px); }
+        .btn-primary { background: #2563eb; color: white; border: none; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
+        .btn-primary:hover { background: #1d4ed8; color: white; }
+        .btn-purple { background: #8b5cf6; color: white; border: none; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); }
+        .btn-purple:hover { background: #7c3aed; color: white; }
+        .btn-danger { background: #ef4444; border: none; color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        .btn-danger:hover { background: #dc2626; color: white;}
+        
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px; }
+
+        /* TABLES */
+        .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .admin-table th { 
+            color: #475569; font-size: 0.8rem; text-transform: uppercase; padding: 1.2rem 1rem; 
+            border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; background: #f8fafc; z-index: 10;
+            font-weight: 800; white-space: nowrap; letter-spacing: 0.5px;
+        }
+        .admin-table td { padding: 1.2rem 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600; color: #334155; font-size: 0.9rem; white-space: nowrap;}
+        .admin-table tr:hover td { background: #f8fafc; }
+        
+        /* 🚀 BEAUTIFUL HIDDEN CAPTURE AREAS FOR SCREENSHOTS */
+        /* Forced width and max-width prevent mobile shrinking entirely! */
+        .capture-layer {
+            position: absolute !important; left: -9999px !important; top: 0 !important; 
+            width: 850px !important; max-width: none !important;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%) !important;
+            color: white !important; padding: 50px !important; border-radius: 30px !important; 
+            font-family: 'Poppins', sans-serif !important; 
+            box-sizing: border-box !important; z-index: -100 !important; overflow: hidden !important;
+        }
+        .capture-layer::before {
+            content: ''; position: absolute; top: -20%; left: -10%; width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(56,189,248,0.15) 0%, transparent 70%); border-radius: 50%;
+        }
+        .capture-layer::after {
+            content: ''; position: absolute; bottom: -20%; right: -10%; width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%); border-radius: 50%;
+        }
+
+        .report-header { border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 25px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2;}
+        .report-title { margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -1px; text-shadow: 0 2px 10px rgba(0,0,0,0.3);}
+        .report-date { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 1rem; display: inline-block; border: 1px solid rgba(255,255,255,0.2);}
+        
+        .report-total { margin-top: 10px; font-size: 1rem; color: #bae6fd; font-weight: 600; text-align: right; line-height: 1.4; max-width: 300px; margin-left: auto;}
+        
+        .report-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: rgba(255,255,255,0.08); padding: 18px 25px; border-radius: 16px; 
+            border: 1px solid rgba(255,255,255,0.15); 
+            backdrop-filter: blur(10px); position: relative; z-index: 2;
+        }
+        .r-rank { font-size: 1.5rem; font-weight: 800; color: #93c5fd; width: 40px;}
+        .r-name { font-weight: 800; font-size: 1.25rem; flex-grow: 1; margin: 0 20px; letter-spacing: -0.5px;}
+        .r-course { font-size: 0.9rem; color: #cbd5e1; font-weight: 600; display: block; margin-top: 4px;}
+        .r-score { background: white; color: #1e3a8a; padding: 10px 20px; border-radius: 12px; font-weight: 800; font-size: 1.4rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2);}
+
+        /* MOBILE ADJUSTMENTS */
+        @media (max-width: 600px) {
+            .header-actions { flex-direction: column; align-items: stretch; }
+            .btn-action { justify-content: center; width: 100%;}
+            .admin-wrapper { padding: 0 1rem; margin: 1rem auto; }
+            .kpi-card { padding: 1.2rem; flex-direction: column; align-items: flex-start; gap: 5px;}
+            .kpi-value { font-size: 2.2rem; }
+            /* Note: .capture-layer is intentionally NOT modified here so it stays desktop-width */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-loader">
+        <svg class="animate-spin" style="width: 40px; height: 40px; color: #38bdf8; margin-bottom: 15px;" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <h3 style="margin:0; font-size: 1.1rem;">Verifying Clearance...</h3>
+    </div>
+
+    <!-- 🚀 IMAGE CAPTURE 1: TOP SCORERS -->
+    <div id="capture-area" class="capture-layer">
+        <div class="report-header">
+            <div>
+                <h2 class="report-title">🏆 Daily Top Scorers</h2>
+                <p style="margin: 5px 0 0 0; color: #93c5fd; font-size: 1.1rem; font-weight: 600;">AFIT CBT Simulator Leaderboard</p>
+            </div>
+            <div style="text-align: right;">
+                <div class="report-date" id="img-date">--</div>
+                <div class="report-total" id="img-total-exams">0 Exams Taken Today</div>
+            </div>
+        </div>
+        
+        <div id="img-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        
+        <div style="text-align: center; margin-top: 40px; font-size: 0.95rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">
+            Powered by brightsitedev
+        </div>
+    </div>
+
+    <!-- 🚀 IMAGE CAPTURE 2: DYNAMIC DEMOGRAPHICS SPLIT -->
+    <div id="capture-area-demo" class="capture-layer">
+        <div class="report-header">
+            <div>
+                <h2 class="report-title" id="demo-report-title">📊 Admission Demographics</h2>
+                <p style="margin: 5px 0 0 0; color: #93c5fd; font-size: 1.1rem; font-weight: 600;" id="demo-report-subtitle">Course Competition Tracker</p>
+            </div>
+            <div style="text-align: right;">
+                <div class="report-date" id="demo-img-date">--</div>
+                <div class="report-total" id="demo-total-candidates">0 Candidates Registered</div>
+            </div>
+        </div>
+        
+        <!-- This container is dynamically set to grid or flex depending on the tier via JS -->
+        <div id="demo-img-list" style="position: relative; z-index: 2;"></div>
+        
+        <div style="text-align: center; margin-top: 40px; font-size: 0.95rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; position: relative; z-index: 2;">
+            Powered by brightsitedev
+        </div>
+    </div>
+
+    <div id="admin-dashboard">
+        <nav class="admin-nav">
+            <div class="admin-nav-title">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="100" height="100" rx="22" fill="#2563eb"/>
+                    <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+                </svg>
+                COMMAND CENTER
+            </div>
+            <button onclick="adminLogout()" class="btn-action btn-danger" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Disconnect</button>
+        </nav>
+
+        <div class="admin-wrapper">
+            
+            <div class="header-actions">
+                <div>
+                    <h1 style="margin: 0; font-size: 1.8rem; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">Live Telemetry</h1>
+                    <p style="margin: 5px 0 0 0; color: #64748b; font-weight: 500;">Real-time platform analytics and candidate data.</p>
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end;">
+                    <button onclick="fetchAdminData()" class="btn-action">🔄 Refresh</button>
+                    <button onclick="downloadDailyReport()" class="btn-action btn-primary" id="dl-btn">🏆 Top Scorers</button>
+                    
+                    <!-- 🚀 NEW COMPACT DEMOGRAPHICS CONTROLS -->
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: white; padding: 6px 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                        <span style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-right: 5px;">Images:</span>
+                        <button onclick="downloadDemographicsReport('high')" class="btn-action btn-sm" id="dl-high-btn" style="color: #ef4444; border-color: #fca5a5;">🔥 Highly</button>
+                        <button onclick="downloadDemographicsReport('mid')" class="btn-action btn-sm" id="dl-mid-btn" style="color: #f59e0b; border-color: #fcd34d;">⚡ Mid</button>
+                        <button onclick="downloadDemographicsReport('low')" class="btn-action btn-sm" id="dl-low-btn" style="color: #10b981; border-color: #6ee7b7;">🎯 Less</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VERTICAL KPI LAYOUT -->
+            <div class="kpi-grid">
+                <div class="kpi-card blue">
+                    <span class="kpi-title">Total Registered Users</span>
+                    <span class="kpi-value" id="kpi-users">0</span>
+                </div>
+                <div class="kpi-card orange">
+                    <span class="kpi-title">Exams Taken Today</span>
+                    <span class="kpi-value" id="kpi-today">0</span>
+                </div>
+                <div class="kpi-card purple">
+                    <span class="kpi-title">Exams Taken (All Time)</span>
+                    <span class="kpi-value" id="kpi-exams">0</span>
+                </div>
+                 <div class="kpi-card indigo">
+                    <span class="kpi-title">Question Bank Access</span>
+                    <span class="kpi-value" id="kpi-qbank">0</span>
+                </div>
+                 <div class="kpi-card green">
+                    <span class="kpi-title">Premium Simulator Users</span>
+                    <span class="kpi-value" id="kpi-premium">0</span>
+                </div>
+            </div>
+
+            <div class="tabs-container">
+                <button class="tab-btn active" onclick="switchTab('results')">Recent Exams (Top 20)</button>
+                <button class="tab-btn" onclick="switchTab('demographics')">Aspirant Demographics</button>
+            </div>
+
+            <div id="tab-results" class="data-panel active">
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Aspirant</th>
+                                <th>Total Score</th>
+                                <th>ENG</th>
+                                <th>MTH</th>
+                                <th>PHY</th>
+                                <th>CHM</th>
+                                <th>GNS</th>
+                                <th>ECO</th>
+                                <th>LIT</th>
+                                <th>GOV</th>
+                                <th>COM</th>
+                                <th>Time Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body">
+                            <tr><td colspan="12" style="text-align: center; color: #94a3b8; padding: 3rem;">Loading telemetry data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-demographics" class="data-panel">
+                <div class="demo-grid" id="course-body">
+                    <div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 3rem;">Loading demographic data...</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
+
+    <script>
+        // 🚀 ADMIN FAILSAFE
+        if (typeof supabaseClient === 'undefined') {
+            const supabaseUrl = 'PASTE_YOUR_SUPABASE_URL_HERE';
+            const supabaseKey = 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE';
+            window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        }
+
+        let todayTopScorers = [];
+        let globalCourseArray = [];
+        let globalTotalCandidates = 0;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (!session) {
+                window.location.href = '../login/index.html?mode=admin';
+                return;
+            }
+
+            const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
+            
+            if (!profile || profile.role !== 'admin') {
+                alert("SECURITY LOCKOUT: Your account does not have administrative privileges.");
+                window.location.href = '../dashboard/index.html';
+                return;
+            }
+
+            document.getElementById('auth-loader').style.display = 'none';
+            document.getElementById('admin-dashboard').style.display = 'block';
+            
+            const formattedDate = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            document.getElementById('img-date').innerText = formattedDate;
+            document.getElementById('demo-img-date').innerText = formattedDate;
+            
+            fetchAdminData();
+        });
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.data-panel').forEach(panel => panel.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        async function fetchAdminData() {
+            try {
+                const pTotalUsers = supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
+                const pPremiumUsers = supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('has_paid', true);
+                const pQbankUsers = supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('has_qbank_access', true);
+                const pTotalExams = supabaseClient.from('results').select('*', { count: 'exact', head: true });
+
+                const startOfDay = new Date();
+                startOfDay.setHours(0, 0, 0, 0);
+                const pTodayExams = supabaseClient.from('results')
+                    .select('*, profiles(full_name, course_applied)')
+                    .gte('submitted_at', startOfDay.toISOString());
+
+                const pRecentResults = supabaseClient.from('results')
+                    .select('*, profiles(full_name, course_applied)')
+                    .order('submitted_at', { ascending: false })
+                    .limit(20); 
+
+                const pDemographics = supabaseClient.from('profiles').select('course_applied');
+
+                const [
+                    { count: totalUsers }, 
+                    { count: premiumUsers }, 
+                    { count: qbankUsers },
+                    { count: totalExams }, 
+                    { data: todayResults },
+                    { data: recentResults },
+                    { data: profiles }
+                ] = await Promise.all([pTotalUsers, pPremiumUsers, pQbankUsers, pTotalExams, pTodayExams, pRecentResults, pDemographics]);
+
+                const examsToday = todayResults ? todayResults.length : 0;
+
+                // Inject KPI Values
+                document.getElementById('kpi-users').innerText = totalUsers || 0;
+                document.getElementById('kpi-premium').innerText = premiumUsers || 0;
+                document.getElementById('kpi-qbank').innerText = qbankUsers || 0;
+                document.getElementById('kpi-exams').innerText = totalExams || 0;
+                document.getElementById('kpi-today').innerText = examsToday;
+                
+                document.getElementById('img-total-exams').innerText = `${examsToday} Exams Taken Today`;
+
+                todayTopScorers = [];
+                if (todayResults && todayResults.length > 0) {
+                    const sortedToday = [...todayResults].sort((a, b) => b.total_score - a.total_score);
+                    todayTopScorers = sortedToday.slice(0, 5);
+                }
+
+                // --- POPULATE DEMOGRAPHICS ---
+                const courseCounts = {};
+                globalTotalCandidates = 0;
+
+                if (profiles) {
+                    profiles.forEach(p => {
+                        if (p.course_applied) {
+                            const cleanName = p.course_applied.replace(/\[.*?\]/g, '').trim();
+                            courseCounts[cleanName] = (courseCounts[cleanName] || 0) + 1;
+                            globalTotalCandidates++;
+                        }
+                    });
+                }
+
+                const courseBody = document.getElementById('course-body');
+                courseBody.innerHTML = '';
+                
+                globalCourseArray = Object.keys(courseCounts).map(key => ({ name: key, count: courseCounts[key] }));
+                globalCourseArray.sort((a, b) => b.count - a.count);
+
+                // 🚀 MODIFIED TEXT
+                document.getElementById('demo-total-candidates').innerHTML = `${globalTotalCandidates} Candidates Registered<br>in AFIT CBT SIM`;
+
+                if (globalCourseArray.length === 0) {
+                    courseBody.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 2rem;">No demographic data available.</div>';
+                } else {
+                    globalCourseArray.forEach(course => {
+                        courseBody.innerHTML += `
+                            <div class="course-stat-card">
+                                <span class="course-name">${course.name}</span>
+                                <span class="course-count">${course.count} Candidates</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                // --- POPULATE RESULTS TABLE ---
+                const rBody = document.getElementById('results-body');
+                rBody.innerHTML = '';
+                
+                if (!recentResults || recentResults.length === 0) {
+                    rBody.innerHTML = '<tr><td colspan="12" style="text-align: center; color: #94a3b8; padding: 3rem;">No exams taken yet.</td></tr>';
+                } else {
+                    recentResults.forEach(r => {
+                        const dateObj = new Date(r.submitted_at);
+                        const timeStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                        
+                        const aspirantName = r.profiles ? r.profiles.full_name : 'Unknown Aspirant';
+                        const f = (score) => score > 0 ? `<span style="color:#0f172a; font-weight:800;">${score}</span>` : `<span style="color:#cbd5e1;">-</span>`;
+
+                        rBody.innerHTML += `
+                            <tr>
+                                <td style="font-weight: 800; color: #0f172a;">${aspirantName}</td>
+                                <td><span style="background: #eff6ff; color: #2563eb; padding: 6px 12px; border-radius: 8px; font-weight: 800;">${r.total_score} / 50</span></td>
+                                <td>${f(r.english_score)}</td>
+                                <td>${f(r.math_score)}</td>
+                                <td>${f(r.physics_score)}</td>
+                                <td>${f(r.chemistry_score)}</td>
+                                <td>${f(r.gns_score)}</td>
+                                <td>${f(r.economics_score)}</td>
+                                <td>${f(r.literature_score)}</td>
+                                <td>${f(r.government_score)}</td>
+                                <td>${f(r.commerce_score)}</td>
+                                <td style="color: #64748b; font-size: 0.8rem; font-weight: 500;">${timeStr}</td>
+                            </tr>
+                        `;
+                    });
+                }
+
+            } catch (err) {
+                console.error("Dashboard Error:", err);
+                alert("Failed to load telemetry. Check console.");
+            }
+        }
+
+        // 🚀 IMAGE 1: TOP SCORERS
+        function downloadDailyReport() {
+            const btn = document.getElementById('dl-btn');
+            const originalText = btn.innerHTML;
+            
+            if (todayTopScorers.length === 0) {
+                alert("No exams have been completed today to generate a report.");
+                return;
+            }
+
+            btn.innerHTML = `Generating...`;
+            btn.disabled = true;
+
+            const imgList = document.getElementById('img-list');
+            imgList.innerHTML = ''; 
+
+            todayTopScorers.forEach((r, index) => {
+                const fullName = r.profiles?.full_name || 'Unknown Aspirant';
+                const course = r.profiles?.course_applied ? r.profiles.course_applied.replace(/\[.*?\]/g, '').trim() : 'General';
+                
+                let rankStr = `#${index + 1}`;
+                if(index === 0) rankStr = '🥇';
+                if(index === 1) rankStr = '🥈';
+                if(index === 2) rankStr = '🥉';
+
+                imgList.innerHTML += `
+                    <div class="report-row" style="margin-bottom: 12px;">
+                        <span class="r-rank">${rankStr}</span>
+                        <div class="r-name">
+                            ${fullName}
+                            <span class="r-course">${course}</span>
+                        </div>
+                        <span class="r-score">${r.total_score}/50</span>
+                    </div>
+                `;
+            });
+
+            const captureArea = document.getElementById('capture-area');
+            captureArea.style.left = '0'; 
+            
+            setTimeout(() => {
+                html2canvas(captureArea, { scale: 2, backgroundColor: null }).then(canvas => {
+                    const link = document.createElement('a');
+                    const dateStr = new Date().toISOString().split('T')[0];
+                    link.download = `AFIT_Top_Scorers_${dateStr}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    
+                    captureArea.style.left = '-9999px'; 
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }).catch(err => {
+                    console.error("Image generation failed", err);
+                    captureArea.style.left = '-9999px';
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    alert("Could not generate image.");
+                });
+            }, 300);
+        }
+
+        // 🚀 IMAGE 2: DYNAMIC DEMOGRAPHICS SPLIT & GRID FIX
+        function downloadDemographicsReport(tier) {
+            let btnId = 'dl-high-btn';
+            if (tier === 'mid') btnId = 'dl-mid-btn';
+            if (tier === 'low') btnId = 'dl-low-btn';
+            
+            const btn = document.getElementById(btnId);
+            const originalText = btn.innerHTML;
+            
+            if (globalCourseArray.length === 0) {
+                alert("No demographic data available yet.");
+                return;
+            }
+
+            btn.innerHTML = `Gen...`;
+            btn.disabled = true;
+
+            const demoList = document.getElementById('demo-img-list');
+            let dataToRender = [];
+            let mainTitle = "";
+            let accentColor = "";
+
+            // Smart Array Slicing Based on Tier
+            if (tier === 'high') {
+                dataToRender = globalCourseArray.slice(0, 5); // Top 5
+                mainTitle = "🔥 Highly Competitive";
+                accentColor = "#ef4444"; // Red
+            } else if (tier === 'low') {
+                let startIdx = Math.max(5, globalCourseArray.length - 10);
+                dataToRender = globalCourseArray.slice(startIdx);
+                mainTitle = "🎯 Less Competitive";
+                accentColor = "#10b981"; // Green
+            } else if (tier === 'mid') {
+                if (globalCourseArray.length > 15) { 
+                    dataToRender = globalCourseArray.slice(5, globalCourseArray.length - 10);
+                } else {
+                    dataToRender = globalCourseArray.slice(5); 
+                }
+                mainTitle = "⚡ Mid-Level Competition";
+                accentColor = "#f59e0b"; // Orange/Yellow
+            }
+
+            if (dataToRender.length === 0) {
+                alert(`Not enough departments to generate the ${mainTitle} tier list.`);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            // Update Capture Card Header
+            document.getElementById('demo-report-title').innerHTML = mainTitle;
+            document.getElementById('demo-report-subtitle').innerText = "Department Tracker";
+
+            // 🚀 DYNAMIC LAYOUT: Single column for High, 2-Column Grid for Mid/Low
+            if (tier === 'high') {
+                demoList.style.display = 'block';
+            } else {
+                demoList.style.display = 'grid';
+                demoList.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                demoList.style.gap = '15px';
+            }
+
+            // 🚀 INJECT CARDS (NUMBERS HIDDEN + CENTERED)
+            let listHtml = "";
+            
+            // Handle bottom margin differently depending on layout type
+            let marginB = (tier === 'high') ? 'margin-bottom: 12px;' : 'margin-bottom: 0; height: 100%;';
+
+            dataToRender.forEach(item => {
+                listHtml += `
+                    <div class="report-row" style="padding: 18px 20px; justify-content: center; border-left: 5px solid ${accentColor}; ${marginB} box-sizing: border-box;">
+                        <div class="r-name" style="margin: 0; font-size: 1.25rem; text-align: center; width: 100%; word-break: break-word; line-height: 1.4;">${item.name}</div>
+                    </div>
+                `;
+            });
+            demoList.innerHTML = listHtml;
+
+            const captureArea = document.getElementById('capture-area-demo');
+            captureArea.style.left = '0'; 
+            
+            setTimeout(() => {
+                html2canvas(captureArea, { scale: 2, backgroundColor: null }).then(canvas => {
+                    const link = document.createElement('a');
+                    const dateStr = new Date().toISOString().split('T')[0];
+                    link.download = `AFIT_Demographics_${tier.toUpperCase()}_${dateStr}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    
+                    captureArea.style.left = '-9999px'; 
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }).catch(err => {
+                    console.error("Image generation failed", err);
+                    captureArea.style.left = '-9999px';
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    alert("Could not generate image.");
+                });
+            }, 300);
+        }
+
+        async function adminLogout() {
+            await supabaseClient.auth.signOut();
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>

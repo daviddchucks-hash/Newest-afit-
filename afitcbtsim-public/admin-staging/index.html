@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Question Bank Manager - AFIT CBT</title>
+    
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+    
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], processEscapes: true },
+            options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        /* 🚀 CLEAN & SIMPLE RESPONSIVENESS */
+        *, *::before, *::after { box-sizing: border-box; }
+        body { 
+            background-color: #f8fafc; color: #0f172a; 
+            font-family: 'Poppins', sans-serif; margin: 0; padding: 0; 
+            overflow-x: hidden; width: 100%; min-height: 100vh;
+        }
+        
+        .admin-nav {
+            height: 70px; background: #0f172a; color: white; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 5%; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%;
+        }
+        
+        /* 🚀 GLOBAL STATS BAR */
+        .global-stats-bar {
+            display: flex; gap: 15px; overflow-x: auto; padding: 1.5rem 5%; background: white; 
+            border-bottom: 1px solid #e2e8f0; width: 100%;
+            -ms-overflow-style: none; scrollbar-width: none;
+        }
+        .global-stats-bar::-webkit-scrollbar { display: none; }
+        .stat-box {
+            background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 24px; 
+            text-align: center; min-width: 120px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); flex-shrink: 0;
+        }
+        .stat-box span { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-box strong { font-size: 1.6rem; color: #0f172a; }
+
+        /* 🚀 TABS */
+        .tab-wrapper { padding: 1.5rem 5% 0 5%; display: flex; gap: 10px; flex-wrap: wrap; width: 100%; }
+        .tab-btn {
+            padding: 1rem 2rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; 
+            background: white; color: #64748b; transition: all 0.2s; flex-grow: 1; text-align: center; font-size: 1rem;
+            border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .tab-btn:hover { background: #f1f5f9; color: #0f172a; }
+        .tab-btn.active { background: #2563eb; color: white; border-color: #2563eb; box-shadow: 0 4px 12px rgba(37,99,235,0.2); }
+
+        /* 🚀 LAYOUT CONTAINERS */
+        .staging-layout { display: grid; grid-template-columns: 350px 1fr; max-width: 1400px; margin: 1.5rem auto; gap: 1.5rem; padding: 0 5%; width: 100%; align-items: start; }
+        .editor-layout { max-width: 900px; margin: 1.5rem auto; padding: 0 5%; width: 100%; display: none; }
+        
+        .panel-card { background: white; padding: 2rem; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); width: 100%; overflow: hidden; }
+        
+        /* INPUTS & BUTTONS */
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
+        .input-group select, .input-group input { width: 100%; padding: 0.8rem 1rem; border-radius: 10px; border: 2px solid #e2e8f0; font-family: 'Poppins', sans-serif; margin-bottom: 1rem; font-size: 1rem; box-sizing: border-box; outline: none; transition: border-color 0.2s;}
+        .input-group select:focus, .input-group input:focus { border-color: #2563eb; }
+        
+        .search-flex { display: flex; gap: 10px; width: 100%; align-items: stretch; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .search-flex input { margin-bottom: 0; flex-grow: 1; min-width: 0; }
+        .search-flex button { flex-shrink: 0; margin-bottom: 0; white-space: nowrap; }
+
+        .btn { width: 100%; padding: 1rem; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; font-size: 1rem; transition: transform 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif;}
+        .btn:hover { transform: translateY(-2px); }
+        .btn-blue { background: #2563eb; color: white; }
+        .btn-green { background: #16a34a; color: white; }
+        .btn-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .btn-orange { background: #ea580c; color: white; }
+        
+        /* QUESTION PREVIEW */
+        .question-card { border: 2px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; background: #f8fafc; width: 100%; overflow-x: auto; }
+        .q-meta { display: flex; justify-content: space-between; font-weight: 700; color: #64748b; border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1.5rem; text-transform: uppercase; flex-wrap: wrap; gap: 10px; font-size: 0.85rem;}
+        .q-text { font-size: 1.15rem; font-weight: 500; margin-bottom: 2rem; line-height: 1.6; word-wrap: break-word; overflow-wrap: break-word; color: #1e293b;}
+        
+        .option-box { display: flex; align-items: center; padding: 1rem 1.2rem; background: white; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 1rem; word-wrap: break-word; }
+        .option-box.correct-ans { background: #dcfce7; border-color: #16a34a; }
+        .opt-letter { width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; display: flex; justify-content: center; align-items: center; font-weight: 800; margin-right: 15px; color: #475569; flex-shrink: 0;}
+        .option-box.correct-ans .opt-letter { background: #16a34a; color: white; }
+
+        .instruction-box { background: #eff6ff; padding: 1rem 1.5rem; border-radius: 12px; border-left: 4px solid #2563eb; margin-bottom: 1.5rem; color: #1e40af; }
+
+        @media (max-width: 900px) {
+            .admin-nav { flex-direction: column; height: auto; padding: 1rem; gap: 10px; text-align: center; }
+            .staging-layout { grid-template-columns: 1fr; padding: 0 1rem; gap: 1rem; }
+            .editor-layout { padding: 0 1rem; }
+            .panel-card { padding: 1.2rem; }
+            .tab-wrapper { padding: 1rem 1rem 0 1rem; }
+            .search-flex { flex-direction: column; }
+            .search-flex button { width: 100%; }
+            #edit-actions, #staging-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem; }
+            #edit-actions button, #staging-actions button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="admin-nav">
+        <div style="font-weight: 800; font-size: 1.2rem;">AFIT Admin | Question Bank Manager</div>
+        <button onclick="window.location.href='../profile/index.html'" style="background: #334155; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer;">Back to Profile</button>
+    </nav>
+
+    <div class="global-stats-bar" id="stats-bar">
+        <div class="stat-box"><span>Loading Stats</span><strong>...</strong></div>
+    </div>
+
+    <div class="tab-wrapper">
+        <button class="tab-btn active" id="tab-btn-staging" onclick="switchTab('staging')">📥 ALOC Staging Area</button>
+        <button class="tab-btn" id="tab-btn-editor" onclick="switchTab('editor')">✏️ Edit Main Bank</button>
+    </div>
+
+    <div class="staging-layout" id="section-staging">
+        
+        <div class="panel-card">
+            <h3 style="margin-top:0; color: #0f172a; font-size: 1.3rem;">1. Pull from ALOC</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">Fetch 40 new questions to the holding queue.</p>
+            
+            <div class="input-group">
+                <label>ALOC API Key</label>
+                <input type="text" id="aloc-key" placeholder="Paste Token here...">
+            </div>
+            
+            <div class="input-group">
+                <label>Select Subject</label>
+                <select id="aloc-subject">
+                    <option value="english">English Language</option>
+                    <option value="mathematics">Mathematics</option>
+                    <option value="physics">Physics</option>
+                    <option value="chemistry">Chemistry</option>
+                    <option value="biology">Biology</option>
+                    <option value="economics">Economics</option>
+                    <option value="commerce">Commerce</option>
+                    <option value="government">Government</option>
+                    <option value="literature">Literature in English</option>
+                    <option value="currentaffairs">Current Affairs (GNS)</option>
+                    <option value="civiceducation">Civic Education (GNS)</option>
+                </select>
+            </div>
+            
+            <button class="btn btn-blue" id="fetch-btn" onclick="fetchFromALOC()">Pull Questions</button>
+            <div id="fetch-status" style="font-size: 0.85rem; text-align: center; font-weight: 700; margin-top: 15px;"></div>
+        </div>
+
+        <div class="panel-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;">
+                <h3 style="margin:0; color: #0f172a; font-size: 1.3rem;">2. Review & Approve</h3>
+                <div style="background: #eff6ff; color: #2563eb; padding: 5px 12px; border-radius: 8px; font-weight: 700; font-size: 0.9rem;">
+                    <span id="staging-count">0</span> In Queue
+                </div>
+            </div>
+
+            <div id="empty-state" style="text-align: center; color: #94a3b8; padding: 3rem 0;">
+                <svg style="width: 50px; opacity: 0.5; margin-bottom: 10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                <p>Holding queue is empty. Pull questions to begin.</p>
+            </div>
+
+            <div id="review-canvas" style="display: none;">
+                <div class="question-card" id="q-card"></div>
+                <div id="staging-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 1.5rem;">
+                    <button class="btn btn-red" onclick="deleteStagingQuestion()" id="del-btn">🗑️ Delete (Trash)</button>
+                    <button class="btn btn-green" onclick="approveAndMove()" id="app-btn">✅ Approve & Move to Main</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="editor-layout" id="section-editor">
+        <div class="panel-card">
+            <h3 style="margin-top:0; color: #0f172a; font-size: 1.3rem;">Search & Edit Main Question Bank</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">Enter the 4-character ID (e.g. X8B2) to find and modify a live question.</p>
+            
+            <div class="search-flex">
+                <input type="text" id="search-id" placeholder="Enter Short ID..." maxlength="5" style="text-transform: uppercase;">
+                <button class="btn btn-blue" onclick="searchMainDatabase()" id="search-btn" style="width: auto;">🔍 Search Bank</button>
+            </div>
+            
+            <div id="search-status" style="font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem; text-align: center;"></div>
+
+            <div id="editor-canvas" style="display: none; border-top: 2px solid #f1f5f9; padding-top: 1.5rem;">
+                <div class="question-card" id="editor-q-card" style="margin-bottom: 1.5rem;"></div>
+                
+                <div class="input-group">
+                    <label>Change Correct Answer To:</label>
+                    <select id="edit-correct-option">
+                        <option value="A">Option A</option>
+                        <option value="B">Option B</option>
+                        <option value="C">Option C</option>
+                        <option value="D">Option D</option>
+                    </select>
+                </div>
+
+                <div id="edit-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <button class="btn btn-red" onclick="deleteMainQuestion()" id="edit-del-btn">🗑️ Delete Permanently</button>
+                    <button class="btn btn-orange" onclick="updateMainAnswer()" id="edit-update-btn">💾 Save New Answer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
+
+    <script>
+        if (typeof supabaseClient === 'undefined') {
+            const supabaseUrl = 'PASTE_YOUR_SUPABASE_URL_HERE';
+            const supabaseKey = 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE';
+            window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        }
+
+        let stagingQueue = [];
+        let currentIndex = 0;
+        let activeEditorQuestion = null;
+
+        const MOJIBAKE_MAP = {
+            "a\u0161": "\\sqrt{", "â€²â€²": "-", "âr′": "-", "\\l_s": "\\theta", "\\l,": "\\theta", "i\\in": "\\pi", "Î\\_s": "\\theta",
+            "kgmal": "kgm^{-3}", "Nma 2": "Nm^{-2}", "msâˆ’1": "ms^{-1}", "msâˆ’2": "ms^{-2}", "â€™": "'", "â€˜": "'", "â€œ": '"', "â€": '"', "â€": '"', 
+            "â€š": "‚", "â€ž": "„", "â€“": "-", "â€”": "-", "â€¦": "...", "â€¢": "•", "â‚¬": "€", "Â£": "£", "â‚¦": "₦",
+            "âˆ’": "−", "â‰¡": "≡", "â‰ˆ": "≈", "âˆ¼": "∼", "âˆ": "∝", "âˆ«": "∫", "âˆ‘": "∑", "âˆЏ": "∏", "âˆ†": "Δ", "âˆ‡": "∇",
+            "âˆˆ": "∈", "âˆ‰": "∉", "âˆ©": "∩", "âˆª": "∪", "âˆ´": "∴", "âˆµ": "∵", "âˆ—": "∗", "âˆ˜": "∘", "âŠ‚": "⊂", "âŠƒ": "⊃", "âŠ†": "⊆", "âŠ‡": "⊇",
+            "âŠ•": "⊕", "âŠ—": "⊗", "âŠ¥": "⊥", "â‹…": "⋅", "Ã—": "×", "Ã·": "÷", "Â°": "°", "Â±": "±", "â‰ ": "≠", "â‰¤": "≤", "â‰¥": "≥", "âˆž": "∞", "âˆš": "√",
+            "Â²": "^2", "Â³": "^3", "Â¹": "^1", "Â¼": "¼", "Â½": "½", "Â¾": "¾", "â†’": "→", "â‡Œ": "⇌", "â†": "←", "â†‘": "↑", "â†“": "↓", "â†”": "↔",
+            "â‡’": "⇒", "â‡": "⇐", "â‡‘": "⇑", "â‡“": "⇓", "â‡”": "⇔", "Î±": "α", "Î²": "β", "Î³": "γ", "Î´": "δ", "Îµ": "ε", "Î¶": "ζ", 
+            "Î·": "η", "Î¸": "θ", "Î¹": "ι", "Îº": "κ", "Î»": "λ", "Î¼": "μ", "Âµ": "μ", "Î½": "ν", "Î¾": "ξ", "Î¿": "ο", "Ï€": "π", "Ï": "ρ", "Ï‚": "ς", 
+            "Ïƒ": "σ", "Ï„": "τ", "Ï…": "υ", "Ï†": "φ", "Ï‡": "χ", "Ïˆ": "ψ", "Ï‰": "ω", "Â": " " 
+        };
+        const MOJIBAKE_KEYS = Object.keys(MOJIBAKE_MAP).sort((a, b) => b.length - a.length);
+
+        function prepText(txt) {
+            if (!txt) return "";
+            let c = txt.toString();
+            for (let i = 0; i < MOJIBAKE_KEYS.length; i++) {
+                c = c.split(MOJIBAKE_KEYS[i]).join(MOJIBAKE_MAP[MOJIBAKE_KEYS[i]]);
+            }
+            const mathCommands = ['\\frac', '\\theta', '\\pi', '\\sqrt', '\\alpha', '\\beta', '\\int', '\\sum', '\\sin', '\\cos', '\\tan', '^'];
+            const hasMath = mathCommands.some(cmd => c.includes(cmd));
+            const hasDelimiters = c.includes('$') || c.includes('\\(') || c.includes('\\[');
+            if (hasMath && !hasDelimiters) c = '\\( ' + c + ' \\)';
+            return c;
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) return window.location.href = '../login/index.html?mode=admin';
+            
+            const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
+            if (!profile || (profile.role !== 'admin' && profile.role !== 'jnr-admin')) {
+                alert("SECURITY LOCKOUT: Admin & Jnr-Admin only.");
+                window.location.href = '../dashboard/index.html';
+                return;
+            }
+
+            if(localStorage.getItem('aloc_key')) document.getElementById('aloc-key').value = localStorage.getItem('aloc_key');
+
+            loadGlobalStats();
+            loadStagingQueue();
+        });
+
+        function switchTab(tab) {
+            document.getElementById('tab-btn-staging').classList.remove('active');
+            document.getElementById('tab-btn-editor').classList.remove('active');
+            document.getElementById('section-staging').style.display = 'none';
+            document.getElementById('section-editor').style.display = 'none';
+
+            document.getElementById(`tab-btn-${tab}`).classList.add('active');
+            document.getElementById(`section-${tab}`).style.display = tab === 'staging' ? 'grid' : 'block';
+            
+            if(window.innerWidth <= 900 && tab === 'staging') {
+                document.getElementById('section-staging').style.display = 'block';
+            }
+        }
+
+        async function loadGlobalStats() {
+            // 🚀 Changed 'gns' to 'GNS' to match the database requirement
+            const subjectsToCount = ['english', 'mathematics', 'physics', 'chemistry', 'biology', 'economics', 'commerce', 'government', 'literature', 'GNS'];
+            try {
+                const countPromises = subjectsToCount.map(async (subj) => {
+                    const { count, error } = await supabaseClient.from('questions').select('*', { count: 'exact', head: true }).eq('subject', subj);
+                    return { subject: subj, count: error ? 0 : (count || 0) };
+                });
+
+                const results = await Promise.all(countPromises);
+                let html = '';
+                results.forEach(res => {
+                    if (res.count > 0) html += `<div class="stat-box"><span>${res.subject.toUpperCase()}</span><strong>${res.count}</strong></div>`;
+                });
+
+                document.getElementById('stats-bar').innerHTML = html || '<div class="stat-box"><span>Bank Empty</span><strong>0</strong></div>';
+            } catch (err) {
+                document.getElementById('stats-bar').innerHTML = '<div class="stat-box"><span>Error Loading</span><strong>!</strong></div>';
+            }
+        }
+
+        async function fetchFromALOC() {
+            const apiKey = document.getElementById('aloc-key').value.trim();
+            const subject = document.getElementById('aloc-subject').value;
+            const btn = document.getElementById('fetch-btn');
+            const status = document.getElementById('fetch-status');
+            
+            if (!apiKey) { alert("Please enter your ALOC API Key."); return; }
+            localStorage.setItem('aloc_key', apiKey); 
+
+            btn.innerText = "Connecting..."; btn.disabled = true;
+            status.style.color = "#2563eb"; status.innerText = "Scanning database for existing questions...";
+
+            try {
+                // 🚀 Changed dbSubject assignment to strictly use 'GNS' (uppercase)
+                let dbSubject = subject;
+                if (subject === 'mathematic') dbSubject = 'mathematics';
+                if (subject === 'currentaffairs' || subject === 'civiceducation') dbSubject = 'GNS';
+
+                let alocSlug = subject;
+                if (subject === 'literature') alocSlug = 'englishlit';
+
+                const [{data: mainQs}, {data: stageQs}] = await Promise.all([
+                    supabaseClient.from('questions').select('question_text').eq('subject', dbSubject),
+                    supabaseClient.from('staging_questions').select('question_text').eq('subject', dbSubject)
+                ]);
+
+                const allExisting = new Set([
+                    ...(mainQs || []).map(q => q.question_text.trim().toLowerCase()),
+                    ...(stageQs || []).map(q => q.question_text.trim().toLowerCase())
+                ]);
+
+                status.innerText = "Pulling from ALOC API...";
+
+                let json = null, fetchSuccess = false;
+                for(let attempt = 1; attempt <= 3; attempt++) {
+                    try {
+                        const response = await fetch(`https://questions.aloc.com.ng/api/v2/q/40?subject=${alocSlug}`, {
+                            method: 'GET', headers: { 'Accept': 'application/json', 'AccessToken': apiKey }
+                        });
+                        json = await response.json();
+                        if (json && json.status === 200 && json.data) { fetchSuccess = true; break; }
+                    } catch(e) { console.warn(`Attempt ${attempt} failed.`); }
+                }
+
+                if (!fetchSuccess) throw new Error("ALOC API failed to respond after 3 attempts.");
+
+                status.innerText = "Filtering duplicates & formatting...";
+
+                const newQuestions = [];
+                json.data.forEach(q => {
+                    let finalQuestionText = q.question || "";
+                    
+                    if ((dbSubject === 'english' || dbSubject === 'literature') && q.section) {
+                        finalQuestionText = `
+                            <div class="instruction-box">
+                                <strong style="color: #1e40af; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">Instruction / Passage</strong><br>
+                                <em style="font-size: 1.05rem;">${q.section}</em>
+                            </div>
+                            ${finalQuestionText}
+                        `;
+                    }
+
+                    if (!finalQuestionText.trim()) {
+                         finalQuestionText = `<em style="color: #dc2626;">[Data Error: ALOC provided no text body for this question. Delete this.]</em>`;
+                    }
+
+                    const qTextLower = finalQuestionText.trim().toLowerCase();
+                    
+                    if (!allExisting.has(qTextLower)) {
+                        newQuestions.push({
+                            subject: dbSubject, 
+                            question_text: finalQuestionText,
+                            option_a: q.option.a || "N/A",
+                            option_b: q.option.b || "N/A",
+                            option_c: q.option.c || "N/A",
+                            option_d: q.option.d || "N/A",
+                            correct_answer: (q.answer || "").toUpperCase(),
+                            short_id: Math.random().toString(36).substr(2, 4).toUpperCase(),
+                            year: q.examyear || "2026"
+                        });
+                        allExisting.add(qTextLower);
+                    }
+                });
+
+                if (newQuestions.length === 0) throw new Error("ALOC returned duplicates of questions already in your bank! Try pulling again.");
+
+                status.innerText = `Saving ${newQuestions.length} unique questions...`;
+                const { error } = await supabaseClient.from('staging_questions').insert(newQuestions);
+                if (error) throw error;
+
+                status.style.color = "#16a34a";
+                status.innerText = `Success! Added ${newQuestions.length} new questions. (${json.data.length - newQuestions.length} duplicates skipped).`;
+                setTimeout(() => loadStagingQueue(), 500);
+
+            } catch (err) {
+                console.error(err);
+                status.style.color = "#dc2626"; status.innerText = "Error: " + err.message;
+            } finally {
+                btn.innerText = "Pull Questions"; btn.disabled = false;
+            }
+        }
+
+        async function loadStagingQueue() {
+            const { data, error } = await supabaseClient.from('staging_questions').select('*');
+            if (error) return;
+            stagingQueue = data || [];
+            document.getElementById('staging-count').innerText = stagingQueue.length;
+
+            if (stagingQueue.length === 0) {
+                document.getElementById('empty-state').style.display = 'block';
+                document.getElementById('review-canvas').style.display = 'none';
+            } else {
+                document.getElementById('empty-state').style.display = 'none';
+                document.getElementById('review-canvas').style.display = 'block';
+                currentIndex = 0;
+                renderStagingCard();
+            }
+        }
+
+        function renderStagingCard() {
+            const q = stagingQueue[currentIndex];
+            if (!q) return loadStagingQueue();
+            const isCorrect = (opt) => q.correct_answer === opt ? 'correct-ans' : '';
+            const html = `
+                <div class="q-meta">
+                    <span>${q.subject.toUpperCase()} • Year: ${q.year}</span>
+                    <span style="background: #e2e8f0; padding: 4px 12px; border-radius: 6px;">ID: ${q.short_id}</span>
+                </div>
+                <div class="q-text">${prepText(q.question_text)}</div>
+                <div class="option-box ${isCorrect('A')}"><div class="opt-letter">A</div> <span class="opt-text">${prepText(q.option_a)}</span></div>
+                <div class="option-box ${isCorrect('B')}"><div class="opt-letter">B</div> <span class="opt-text">${prepText(q.option_b)}</span></div>
+                <div class="option-box ${isCorrect('C')}"><div class="opt-letter">C</div> <span class="opt-text">${prepText(q.option_c)}</span></div>
+                <div class="option-box ${isCorrect('D')}"><div class="opt-letter">D</div> <span class="opt-text">${prepText(q.option_d)}</span></div>
+            `;
+            document.getElementById('q-card').innerHTML = html;
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        async function approveAndMove() {
+            const q = stagingQueue[currentIndex];
+            const btn = document.getElementById('app-btn');
+            btn.innerText = "Checking..."; btn.disabled = true;
+
+            try {
+                const { data: dupCheck } = await supabaseClient.from('questions').select('id').eq('question_text', q.question_text).maybeSingle();
+                if (dupCheck) {
+                    alert("⚠️ Duplicate Prevented! This exact question is already in the Main Bank. Deleting from staging...");
+                    await supabaseClient.from('staging_questions').delete().eq('id', q.id);
+                    stagingQueue.splice(currentIndex, 1);
+                    return updateUI();
+                }
+
+                btn.innerText = "Moving...";
+                const { error: insErr } = await supabaseClient.from('questions').insert([{
+                    subject: q.subject, question_text: q.question_text,
+                    option_a: q.option_a, option_b: q.option_b, option_c: q.option_c, option_d: q.option_d,
+                    correct_answer: q.correct_answer, short_id: q.short_id, year: q.year
+                }]);
+                if (insErr) throw insErr;
+
+                const { error: delErr } = await supabaseClient.from('staging_questions').delete().eq('id', q.id);
+                if (delErr) throw delErr;
+
+                stagingQueue.splice(currentIndex, 1);
+                updateUI();
+                loadGlobalStats(); 
+            } catch (err) { alert("Move Error: " + err.message); } 
+            finally { btn.innerHTML = "✅ Approve & Move to Main"; btn.disabled = false; }
+        }
+
+        async function deleteStagingQuestion() {
+            const q = stagingQueue[currentIndex];
+            const btn = document.getElementById('del-btn');
+            btn.innerText = "Deleting..."; btn.disabled = true;
+            try {
+                const { error } = await supabaseClient.from('staging_questions').delete().eq('id', q.id);
+                if (error) throw error;
+                stagingQueue.splice(currentIndex, 1);
+                updateUI();
+            } catch (err) { alert("Delete Error: " + err.message); } 
+            finally { btn.innerHTML = "🗑️ Delete (Trash)"; btn.disabled = false; }
+        }
+
+        function updateUI() {
+            document.getElementById('staging-count').innerText = stagingQueue.length;
+            if (stagingQueue.length === 0) {
+                document.getElementById('empty-state').style.display = 'block';
+                document.getElementById('review-canvas').style.display = 'none';
+            } else {
+                if (currentIndex >= stagingQueue.length) currentIndex = 0; 
+                renderStagingCard();
+            }
+        }
+
+        async function searchMainDatabase() {
+            const shortId = document.getElementById('search-id').value.toUpperCase().trim();
+            const btn = document.getElementById('search-btn');
+            const status = document.getElementById('search-status');
+            
+            if (!shortId || shortId.length < 4) { status.style.color = "#dc2626"; status.innerText = "Enter a valid 4-char ID."; return; }
+
+            btn.innerText = "Searching..."; btn.disabled = true; status.innerText = "";
+
+            try {
+                const { data, error } = await supabaseClient.from('questions').select('*').eq('short_id', shortId).maybeSingle();
+                
+                if (error) throw error;
+                if (!data) {
+                    status.style.color = "#dc2626"; status.innerText = `No question found with ID: ${shortId}`;
+                    document.getElementById('editor-canvas').style.display = 'none';
+                    return;
+                }
+
+                activeEditorQuestion = data;
+                status.style.color = "#16a34a"; status.innerText = "Question loaded successfully!";
+                document.getElementById('editor-canvas').style.display = 'block';
+                document.getElementById('edit-correct-option').value = data.correct_answer;
+                
+                renderEditorCard();
+
+            } catch (err) {
+                status.style.color = "#dc2626"; status.innerText = "Error: " + err.message;
+            } finally {
+                btn.innerHTML = "🔍 Search Bank"; btn.disabled = false;
+            }
+        }
+
+        function renderEditorCard() {
+            const q = activeEditorQuestion;
+            const isCorrect = (opt) => q.correct_answer === opt ? 'correct-ans' : '';
+            const html = `
+                <div class="q-meta">
+                    <span>${q.subject.toUpperCase()} • Year: ${q.year}</span>
+                    <span style="background: #e2e8f0; padding: 4px 12px; border-radius: 6px;">ID: ${q.short_id}</span>
+                </div>
+                <div class="q-text">${prepText(q.question_text)}</div>
+                <div class="option-box ${isCorrect('A')}"><div class="opt-letter">A</div> <span class="opt-text">${prepText(q.option_a)}</span></div>
+                <div class="option-box ${isCorrect('B')}"><div class="opt-letter">B</div> <span class="opt-text">${prepText(q.option_b)}</span></div>
+                <div class="option-box ${isCorrect('C')}"><div class="opt-letter">C</div> <span class="opt-text">${prepText(q.option_c)}</span></div>
+                <div class="option-box ${isCorrect('D')}"><div class="opt-letter">D</div> <span class="opt-text">${prepText(q.option_d)}</span></div>
+            `;
+            document.getElementById('editor-q-card').innerHTML = html;
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        async function updateMainAnswer() {
+            if(!activeEditorQuestion) return;
+            const newAns = document.getElementById('edit-correct-option').value;
+            const btn = document.getElementById('edit-update-btn');
+            
+            btn.innerText = "Saving..."; btn.disabled = true;
+
+            try {
+                const { data, error } = await supabaseClient.from('questions')
+                    .update({ correct_answer: newAns })
+                    .eq('id', activeEditorQuestion.id)
+                    .select();
+
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    throw new Error("Update blocked by Database Security. Please run the SQL command provided to unlock UPDATE permissions.");
+                }
+                
+                alert(`Success! Correct answer updated to Option ${newAns}`);
+                activeEditorQuestion.correct_answer = newAns;
+                renderEditorCard(); 
+            } catch (err) { alert("Update Error: " + err.message); } 
+            finally { btn.innerHTML = "💾 Save New Answer"; btn.disabled = false; }
+        }
+
+        async function deleteMainQuestion() {
+            if(!activeEditorQuestion) return;
+            if(!confirm("⚠️ DANGER: Are you sure you want to permanently delete this question from the Main Bank? This cannot be undone.")) return;
+            
+            const btn = document.getElementById('edit-del-btn');
+            btn.innerText = "Deleting..."; btn.disabled = true;
+
+            try {
+                const { data, error } = await supabaseClient.from('questions')
+                    .delete()
+                    .eq('id', activeEditorQuestion.id)
+                    .select();
+
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    throw new Error("Delete blocked by Database Security. Please run the SQL command provided to unlock DELETE permissions.");
+                }
+                
+                alert("Question permanently deleted from Main Bank.");
+                document.getElementById('editor-canvas').style.display = 'none';
+                document.getElementById('search-id').value = '';
+                document.getElementById('search-status').innerText = '';
+                activeEditorQuestion = null;
+                loadGlobalStats(); 
+            } catch (err) { alert("Delete Error: " + err.message); } 
+            finally { btn.innerHTML = "🗑️ Delete Permanently"; btn.disabled = false; }
+        }
+    </script>
+</body>
+</html>

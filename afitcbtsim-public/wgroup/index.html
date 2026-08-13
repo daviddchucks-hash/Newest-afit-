@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Group - AFIT CBT Simulator</title>
+    
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+    
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+
+    <style>
+        body.premium-group-page { 
+            background-color: #f1f5f9; color: #0f172a; font-family: 'Poppins', sans-serif; 
+            margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column;
+        }
+
+        .vip-nav {
+            height: 70px; background: #0f172a; color: white; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 5%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100;
+        }
+
+        .vip-container {
+            flex-grow: 1; display: flex; justify-content: center; align-items: center; padding: 3rem 1.5rem;
+        }
+
+        /* 🚀 ELITE UI REDESIGN */
+        .premium-card {
+            background: white; width: 100%; max-width: 600px; border-radius: 24px; 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;
+            overflow: hidden; position: relative;
+        }
+
+        .premium-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            padding: 2.5rem 2rem; color: white; text-align: center; position: relative;
+            border-bottom: 4px solid #f59e0b; /* Gold Accent */
+        }
+        
+        .header-logo {
+            width: 60px; height: 60px; background: white; border-radius: 16px; 
+            display: flex; justify-content: center; align-items: center; margin: 0 auto 15px auto;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); padding: 5px;
+        }
+        .header-logo img { width: 100%; height: auto; border-radius: 12px; }
+
+        .premium-header h1 { margin: 0; font-size: 1.8rem; font-weight: 900; letter-spacing: -0.5px; color: #f8fafc; text-transform: uppercase;}
+        .premium-header p { margin: 10px auto 0 auto; font-size: 0.95rem; color: #cbd5e1; font-weight: 500; line-height: 1.6; max-width: 90%;}
+
+        .premium-body { padding: 2.5rem; }
+
+        /* 🚀 BENEFITS GRID */
+        .benefits-wrapper { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; }
+        .benefits-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; color: #f59e0b; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;}
+        
+        .benefit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .benefit-item { display: flex; align-items: flex-start; gap: 10px; font-size: 0.85rem; color: #334155; line-height: 1.4; font-weight: 600;}
+        .benefit-icon { color: #f59e0b; flex-shrink: 0; margin-top: 2px;}
+
+        .premium-note {
+            background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 15px; border-radius: 0 8px 8px 0;
+            font-size: 0.8rem; color: #92400e; font-weight: 600; line-height: 1.5; margin-bottom: 2rem;
+        }
+
+        .input-group { text-align: left; margin-bottom: 1.5rem; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 8px; text-transform: uppercase;}
+        .modern-input {
+            width: 100%; padding: 1.2rem; border-radius: 12px; border: 2px solid #e2e8f0; 
+            background: #f8fafc; font-family: 'Poppins', sans-serif; font-size: 1.1rem; 
+            transition: all 0.3s ease; box-sizing: border-box; color: #1e293b; font-weight: 700; letter-spacing: 1px;
+        }
+        .modern-input:focus { border-color: #3b82f6; background: #ffffff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); outline: none; }
+
+        .btn-pay {
+            width: 100%; padding: 1.2rem; border-radius: 12px; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white;
+            font-weight: 800; font-size: 1.1rem; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;
+            transition: all 0.2s; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.5); }
+        .btn-pay:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; transform: none; }
+
+        .status-box { text-align: center; background: #f8fafc; border: 1px solid #e2e8f0; padding: 3rem 2rem; border-radius: 16px;}
+        
+        #full-page-loader {
+            position: fixed; inset: 0; background: #0f172a; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;
+        }
+
+        @media (max-width: 600px) {
+            .vip-container { padding: 1.5rem 1rem; }
+            .premium-header { padding: 2rem 1.5rem; }
+            .premium-body { padding: 1.5rem; }
+            .benefit-grid { grid-template-columns: 1fr; gap: 12px; }
+            .premium-header h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body class="premium-group-page">
+
+    <div id="full-page-loader">
+        <svg class="animate-spin" style="width: 40px; height: 40px; color: #38bdf8; margin-bottom: 15px;" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <h3 style="margin:0; font-size: 1.1rem; font-family: 'Poppins', sans-serif;">Verifying Status...</h3>
+    </div>
+
+    <nav class="vip-nav">
+        <div style="font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+            <span style="color: #f59e0b;">★</span> Premium Group
+        </div>
+        <button onclick="window.location.href='../dashboard/index.html'" style="background: #334155; color: white; border: none; padding: 0.6rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 0.85rem;">Back to Dashboard</button>
+    </nav>
+
+    <div class="vip-container">
+        <div class="premium-card" id="main-content" style="display: none;">
+            
+            <div class="premium-header">
+                <div class="header-logo">
+                    <img src="../static/img/afitcbtsim-logo.png" alt="AFIT CBT SIM Logo">
+                </div>
+                <h1>AFIT CBT SIM<br><span style="color: #f59e0b;">Premium Group</span></h1>
+                <p>Want to stay ahead of other AFIT aspirants? Get exclusive access to premium features and direct admission guidance.</p>
+            </div>
+
+            <div class="premium-body">
+                
+                <!-- 🚀 STATE 1: SALES PITCH & PAYMENT FORM -->
+                <div id="sales-state">
+                    
+                    <div class="benefits-wrapper">
+                        <div class="benefits-title">🔥 Premium Benefits</div>
+                        <div class="benefit-grid">
+                            <div class="benefit-item">
+                                <svg class="benefit-icon" width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                <span>Group open 24/7</span>
+                            </div>
+                            <div class="benefit-item">
+                                <svg class="benefit-icon" width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                <span>Unlimited questions</span>
+                            </div>
+                            <div class="benefit-item">
+                                <svg class="benefit-icon" width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                <span>Get premium info first</span>
+                            </div>
+                            <div class="benefit-item">
+                                <svg class="benefit-icon" width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                <span>Focused Admin attention</span>
+                            </div>
+                            <div class="benefit-item">
+                                <svg class="benefit-icon" width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                <span>Exam preparation tips</span>
+                            </div>
+                            <div class="benefit-item">
+                                <svg class="benefit-icon" width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                <span>Difficult Q&A Explanations</span>
+                            </div>
+                            <div class="benefit-item">
+                                <svg class="benefit-icon" width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                <span>Important topic alerts</span>
+                            </div>
+                            <div class="benefit-item">
+                                <svg class="benefit-icon" width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                <span>Admission guidance</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="premium-note">
+                        <strong>Note:</strong> All general aspirant groups will be closed after the Post-UTME, but this Premium Group will remain open to guide you through the final admission process.
+                    </div>
+
+                    <div class="input-group">
+                        <label for="wa-number">Enter Active WhatsApp Number</label>
+                        <input type="tel" id="wa-number" class="modern-input" placeholder="e.g. 08012345678" required>
+                    </div>
+
+                    <button class="btn-pay" id="pay-btn" onclick="processVipPayment()">
+                        Join Premium Group — ₦550
+                    </button>
+                    <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 15px; text-align: center;">One-time fee covering admin processing and platform charges. Valid until admission concludes.</p>
+                </div>
+
+                <!-- 🚀 STATE 2: PENDING ADMIN APPROVAL -->
+                <div id="pending-state" class="status-box" style="display: none;">
+                    <div style="font-size: 3.5rem; margin-bottom: 15px;">⏳</div>
+                    <h3 style="margin: 0 0 10px 0; color: #0f172a; font-size: 1.5rem; font-weight: 800;">Payment Verified!</h3>
+                    <p style="margin: 0; color: #64748b; font-size: 0.95rem; line-height: 1.6;">Your number has been submitted successfully. The Admin is verifying your account and will add you to the Premium WhatsApp group shortly. Please ensure your WhatsApp is active.</p>
+                </div>
+
+                <!-- 🚀 STATE 3: APPROVED & ADDED -->
+                <div id="approved-state" class="status-box" style="display: none;">
+                    <div style="font-size: 3.5rem; margin-bottom: 15px;">✅</div>
+                    <h3 style="margin: 0 0 10px 0; color: #16a34a; font-size: 1.5rem; font-weight: 800;">You're Approved!</h3>
+                    <p style="margin: 0 0 20px 0; color: #64748b; font-size: 0.95rem; line-height: 1.6;">You have been approved for the Premium Group. If you have not been added by the admin yet, click the button below to notify us directly.</p>
+                    
+                    <a href="#" id="wa-approved-link" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: white; padding: 1rem 1.5rem; border-radius: 12px; font-weight: 700; text-decoration: none; box-shadow: 0 10px 20px rgba(37,211,102,0.3); width: 100%; box-sizing: border-box; transition: transform 0.2s;">
+                        <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                        Notify Admin on WhatsApp
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
+
+    <script>
+        let sessionEmail = null;
+        let sessionId = null;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (typeof supabaseClient === 'undefined') return;
+
+            const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+            
+            if (!session || authError) {
+                window.location.href = '../login/index.html';
+                return;
+            }
+
+            sessionEmail = session.user.email;
+            sessionId = session.user.id;
+
+            const { data: profile } = await supabaseClient
+                .from('profiles')
+                .select('has_paid, vip_group_status')
+                .eq('id', sessionId)
+                .single();
+
+            // 1. Kick out non-premium users
+            if (!profile.has_paid) {
+                alert("ACCESS DENIED: You must be a Premium Exam Simulator user before you can join the Premium Group.");
+                window.location.href = '../dashboard/index.html';
+                return;
+            }
+
+            // 2. Route based on VIP Status
+            document.getElementById('full-page-loader').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+
+            if (profile.vip_group_status === 'approved') {
+                document.getElementById('sales-state').style.display = 'none';
+                
+                // 🚀 SMART WHATSAPP FALLBACK LINK
+                const waLinkBtn = document.getElementById('wa-approved-link');
+                const msg = `Hello Admin, I have been approved to join the Premium WhatsApp group but I have not been added yet. Here is my email: ${sessionEmail}`;
+                waLinkBtn.href = `https://wa.me/2347040768581?text=${encodeURIComponent(msg)}`;
+                
+                document.getElementById('approved-state').style.display = 'block';
+                
+            } else if (profile.vip_group_status === 'pending') {
+                document.getElementById('sales-state').style.display = 'none';
+                document.getElementById('pending-state').style.display = 'block';
+            }
+            // If null, the sales form stays visible by default
+        });
+
+        function processVipPayment() {
+            const waNumber = document.getElementById('wa-number').value.trim();
+            
+            if (waNumber.length < 10) {
+                alert("Please enter a valid active WhatsApp number.");
+                return;
+            }
+
+            let handler = PaystackPop.setup({
+                key: 'pk_live_f1ca0bad0d6913267fb525e6c58cd2c447a1ae29', 
+                email: sessionEmail,
+                amount: 550 * 100, // 550 Naira in kobo
+                currency: 'NGN',
+                ref: 'AFIT_VIP_' + Math.floor((Math.random() * 1000000000) + 1),
+                metadata: {
+                    custom_fields: [
+                        { display_name: "Student ID", variable_name: "student_id", value: sessionId },
+                        { display_name: "Payment Type", variable_name: "payment_type", value: "vip_group" },
+                        { display_name: "WhatsApp Number", variable_name: "whatsapp_number", value: waNumber }
+                    ]
+                },
+                callback: function(response) {
+                    alert('Payment successful! Verifying your Premium Group access...');
+                    document.getElementById('pay-btn').innerText = 'Verifying...';
+                    document.getElementById('pay-btn').disabled = true;
+                    
+                    // Reload after 3 seconds to fetch the updated "Pending" state from DB
+                    setTimeout(() => { window.location.reload(); }, 3000);
+                },
+                onClose: function() {
+                    alert('Payment process was cancelled.');
+                }
+            });
+            handler.openIframe();
+        }
+    </script>
+</body>
+</html>

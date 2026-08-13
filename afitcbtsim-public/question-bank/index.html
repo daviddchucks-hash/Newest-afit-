@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Bank Vault - AFIT CBT Simulator</title>
+    
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+    
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], processEscapes: true },
+            options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { 
+            background-color: #f1f5f9; color: #0f172a; font-family: 'Poppins', sans-serif; 
+            margin: 0; padding: 0; overflow-y: scroll;
+            /* 🚀 ANTI-HIGHLIGHT CSS */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        .vault-nav {
+            height: 70px; background: #0f172a; color: white; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 5%; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .vault-container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 2rem; }
+
+        /* HEADER BANNER */
+        .vault-header { text-align: center; margin-bottom: 1rem; }
+        .vault-header h1 { font-size: 2.2rem; font-weight: 800; color: #1e293b; margin-bottom: 10px; }
+        .vault-header p { color: #64748b; font-size: 1rem; max-width: 600px; margin: 0 auto; line-height: 1.6;}
+
+        /* CONTROL PANEL */
+        .control-panel {
+            background: white; padding: 2rem; border-radius: 20px; border: 1px solid #e2e8f0; 
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;
+        }
+        .input-group { flex-grow: 1; min-width: 200px; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
+        
+        .input-group select { 
+            width: 100%; height: 55px; padding: 0 1.2rem; border-radius: 12px; border: 2px solid #e2e8f0; 
+            font-family: 'Poppins', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.2s; 
+            color: #1e293b; font-weight: 500; box-sizing: border-box; cursor: pointer;
+        }
+        .input-group select:focus { border-color: #8b5cf6; }
+        
+        .btn-load {
+            background: #8b5cf6; color: white; padding: 0 2rem; border-radius: 12px; font-weight: 700; 
+            border: none; cursor: pointer; font-size: 1rem; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; 
+            height: 55px; flex-shrink: 0; box-sizing: border-box;
+        }
+        .btn-load:hover { transform: translateY(-2px); background: #7c3aed; }
+        .btn-load:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none;}
+
+        /* QUESTION CARD */
+        .question-card {
+            background: white; padding: 2.5rem; border-radius: 20px; border: 1px solid #e2e8f0; 
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); margin-bottom: 2rem;
+        }
+
+        .q-meta { color: #64748b; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 1rem; }
+        .q-text { font-size: 1.15rem; line-height: 1.7; font-weight: 500; margin-bottom: 2rem; color: #1e293b; }
+
+        .report-badge {
+            display: inline-flex; align-items: center; gap: 5px; background: #f8fafc; border: 1px solid #cbd5e1; 
+            color: #475569; padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.5px;
+            margin-top: 15px;
+        }
+
+        .option-box { display: flex; align-items: center; padding: 1rem 1.2rem; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 1rem; }
+        .opt-letter { width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0; display: flex; justify-content: center; align-items: center; font-weight: 800; margin-right: 15px; color: #475569; }
+        .opt-text { font-size: 1rem; color: #334155; }
+
+        .instruction-box { background: #eff6ff; padding: 1rem 1.5rem; border-radius: 12px; border-left: 4px solid #2563eb; margin-bottom: 1.5rem; color: #1e40af; }
+
+        /* REVEAL ANSWER LOGIC */
+        .btn-reveal {
+            background: white; color: #3b82f6; border: 2px solid #bfdbfe; padding: 0.8rem 1.5rem; 
+            border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s; 
+            display: inline-flex; align-items: center; gap: 8px; font-size: 0.95rem; margin-top: 1rem;
+        }
+        .btn-reveal:hover { background: #eff6ff; border-color: #3b82f6; }
+        
+        .answer-block {
+            display: none; background: #dcfce7; border: 2px solid #16a34a; padding: 1.2rem 1.5rem; 
+            border-radius: 12px; margin-top: 1.5rem; animation: slideDown 0.3s ease;
+        }
+        .answer-block .correct-title { color: #16a34a; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block;}
+        .answer-block .correct-val { color: #065f46; font-size: 1.1rem; font-weight: 600; }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* BOTTOM CTA SECTION */
+        #bottom-controls { display: none; text-align: center; margin-bottom: 2rem; }
+        
+        .exam-cta {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 3rem 2rem; border-radius: 20px; text-align: center; color: white;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3); margin-top: 1rem;
+        }
+        .exam-cta h3 { font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; }
+        .exam-cta p { color: #94a3b8; font-size: 1.05rem; margin-bottom: 25px; line-height: 1.6; max-width: 500px; margin-left: auto; margin-right: auto;}
+        
+        .btn-cta {
+            background: #2563eb; color: white; padding: 1.2rem 2.5rem; border-radius: 12px;
+            font-weight: 700; font-size: 1.1rem; text-decoration: none; display: inline-block;
+            transition: transform 0.2s; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+        }
+        .btn-cta:hover { transform: translateY(-2px); background: #1d4ed8;}
+
+        @media (max-width: 768px) {
+            .vault-container { padding: 1.5rem 1rem; }
+            .vault-header h1 { font-size: 1.8rem; }
+            .question-card, .control-panel { padding: 1.5rem; }
+            .control-panel { flex-direction: column; align-items: stretch; }
+            .btn-load { width: 100%; justify-content: center; }
+            .exam-cta { padding: 2rem 1.5rem; }
+            .exam-cta h3 { font-size: 1.5rem; }
+            .btn-cta { width: 100%; display: block; box-sizing: border-box; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="vault-nav">
+        <div style="font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+            📚 Question Bank Vault
+        </div>
+        <button onclick="window.location.href='../dashboard/index.html'" style="background: #334155; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer;">Exit Vault</button>
+    </nav>
+
+    <div class="vault-container">
+        
+        <div class="vault-header">
+            <h1>Study & Practice</h1>
+            <p>Select a subject below to generate a fresh batch of randomized questions tailored to your course profile.</p>
+        </div>
+
+        <div class="control-panel">
+            <div class="input-group">
+                <label>Target Subject</label>
+                <!-- 🚀 The options are now injected dynamically by JS -->
+                <select id="subject-select">
+                    <option value="">Loading your subjects...</option>
+                </select>
+            </div>
+            <button class="btn-load" id="top-load-btn" onclick="fetchVaultQuestions()">
+                <svg style="width: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Load More Questions
+            </button>
+        </div>
+
+        <div id="loading-state" style="text-align: center; color: #64748b; font-size: 1.1rem; padding: 3rem 0; display: none;">
+            Querying database and randomizing questions...
+        </div>
+
+        <div id="questions-canvas">
+            <!-- Questions injected here -->
+        </div>
+
+        <div id="bottom-controls">
+            <button class="btn-load" id="bottom-load-btn" onclick="fetchVaultQuestions()">
+                <svg style="width: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Load More Questions
+            </button>
+            
+            <div class="exam-cta">
+                <h3>Ready to test your knowledge?</h3>
+                <p>Put what you've learned to the test. Take a full-length, timed mock exam to see how you score.</p>
+                <a href="../exams/index.html" class="btn-cta">Go to Exam Room →</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
+
+    <script>
+        // 🚀 ANTI-COPY & ANTI-RIGHT-CLICK PROTECTION
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('copy', event => event.preventDefault());
+        document.addEventListener('cut', event => event.preventDefault());
+
+        const MOJIBAKE_MAP = {
+            "a\u0161": "\\sqrt{", "â€²â€²": "-", "âr′": "-", "\\l_s": "\\theta", "\\l,": "\\theta", "i\\in": "\\pi", "Î\\_s": "\\theta",
+            "kgmal": "kgm^{-3}", "Nma 2": "Nm^{-2}", "msâˆ’1": "ms^{-1}", "msâˆ’2": "ms^{-2}", "â€™": "'", "â€˜": "'", "â€œ": '"', "â€": '"', "â€": '"', 
+            "â€š": "‚", "â€ž": "„", "â€“": "-", "â€”": "-", "â€¦": "...", "â€¢": "•", "â‚¬": "€", "Â£": "£", "â‚¦": "₦",
+            "âˆ’": "−", "â‰¡": "≡", "â‰ˆ": "≈", "âˆ¼": "∼", "âˆ": "∝", "âˆ«": "∫", "âˆ‘": "∑", "âˆЏ": "∏", "âˆ†": "Δ", "âˆ‡": "∇",
+            "âˆˆ": "∈", "âˆ‰": "∉", "âˆ©": "∩", "âˆª": "∪", "âˆ´": "∴", "âˆµ": "∵", "âˆ—": "∗", "âˆ˜": "∘", "âŠ‚": "⊂", "âŠƒ": "⊃", "âŠ†": "⊆", "âŠ‡": "⊇",
+            "âŠ•": "⊕", "âŠ—": "⊗", "âŠ¥": "⊥", "â‹…": "⋅", "Ã—": "×", "Ã·": "÷", "Â°": "°", "Â±": "±", "â‰ ": "≠", "â‰¤": "≤", "â‰¥": "≥", "âˆž": "∞", "âˆš": "√",
+            "Â²": "^2", "Â³": "^3", "Â¹": "^1", "Â¼": "¼", "Â½": "½", "Â¾": "¾", "â†’": "→", "â‡Œ": "⇌", "â†": "←", "â†‘": "↑", "â†“": "↓", "â†”": "↔",
+            "â‡’": "⇒", "â‡": "⇐", "â‡‘": "⇑", "â‡“": "⇓", "â‡”": "⇔", "Î±": "α", "Î²": "β", "Î³": "γ", "Î´": "δ", "Îµ": "ε", "Î¶": "ζ", 
+            "Î·": "η", "Î¸": "θ", "Î¹": "ι", "Îº": "κ", "Î»": "λ", "Î¼": "μ", "Âµ": "μ", "Î½": "ν", "Î¾": "ξ", "Î¿": "ο", "Ï€": "π", "Ï": "ρ", "Ï‚": "ς", 
+            "Ïƒ": "σ", "Ï„": "τ", "Ï…": "υ", "Ï†": "φ", "Ï‡": "χ", "Ïˆ": "ψ", "Ï‰": "ω", "Â": " " 
+        };
+        const MOJIBAKE_KEYS = Object.keys(MOJIBAKE_MAP).sort((a, b) => b.length - a.length);
+
+        function prepText(txt) {
+            if (!txt) return "";
+            let c = txt.toString();
+            for (let i = 0; i < MOJIBAKE_KEYS.length; i++) {
+                c = c.split(MOJIBAKE_KEYS[i]).join(MOJIBAKE_MAP[MOJIBAKE_KEYS[i]]);
+            }
+            const mathCommands = ['\\frac', '\\theta', '\\pi', '\\sqrt', '\\alpha', '\\beta', '\\int', '\\sum', '\\sin', '\\cos', '\\tan', '^'];
+            const hasMath = mathCommands.some(cmd => c.includes(cmd));
+            const hasDelimiters = c.includes('$') || c.includes('\\(') || c.includes('\\[');
+            if (hasMath && !hasDelimiters) c = '\\( ' + c + ' \\)';
+            return c;
+        }
+
+        // 🚀 SMART INITIALIZATION ENGINE
+        document.addEventListener("DOMContentLoaded", async () => {
+            const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+            if (!session || authError) return window.location.href = '../login/index.html';
+
+            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+            
+            if (!profile.has_qbank_access && profile.role !== 'admin' && profile.role !== 'jnr-admin') {
+                alert("SECURITY LOCK: You do not have access to the Question Bank Vault. Please unlock it from your dashboard.");
+                window.location.href = '../dashboard/index.html';
+                return;
+            }
+
+            // 🚀 DYNAMIC SUBJECT FILTER LOGIC
+            const course = profile.course_applied || "";
+            let expectedSubjects = [];
+            
+            if (course.includes("International Relations")) {
+                expectedSubjects = ['english', 'gns', 'economics', 'literature', 'government'];
+            } else if (course.includes("Accounting") || course.includes("Business") || course.includes("Economics")) {
+                const match = course.match(/\[(.*?)\]/);
+                const elective = match ? match[1].toLowerCase() : 'commerce';
+                expectedSubjects = ['english', 'gns', 'mathematics', 'economics', elective];
+            } else {
+                expectedSubjects = ['english', 'gns', 'mathematics', 'physics', 'chemistry'];
+            }
+
+            // Map database IDs to display names
+            const subjectNames = {
+                'english': 'English Language',
+                'gns': 'GNS',
+                'mathematics': 'Mathematics',
+                'physics': 'Physics',
+                'chemistry': 'Chemistry',
+                'economics': 'Economics',
+                'commerce': 'Commerce',
+                'government': 'Government',
+                'literature': 'Literature in English'
+            };
+
+            // Inject the filtered options into the select box
+            const selectEl = document.getElementById('subject-select');
+            selectEl.innerHTML = ''; 
+
+            expectedSubjects.forEach(subj => {
+                const opt = document.createElement('option');
+                opt.value = subj;
+                opt.innerText = subjectNames[subj] || (subj.charAt(0).toUpperCase() + subj.slice(1));
+                selectEl.appendChild(opt);
+            });
+        });
+
+        async function fetchVaultQuestions() {
+            const subject = document.getElementById('subject-select').value;
+            if(!subject) return;
+
+            const canvas = document.getElementById('questions-canvas');
+            const loading = document.getElementById('loading-state');
+            const topBtn = document.getElementById('top-load-btn');
+            const bottomBtn = document.getElementById('bottom-load-btn');
+            const bottomControls = document.getElementById('bottom-controls');
+
+            canvas.innerHTML = '';
+            bottomControls.style.display = 'none';
+            loading.style.display = 'block';
+            topBtn.disabled = true;
+            bottomBtn.disabled = true;
+
+            try {
+                const { data, error } = await supabaseClient.rpc('get_random_questions', { 
+                    subj_param: subject, 
+                    lim_param: 30 
+                });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    loading.innerHTML = `No questions found for ${subject.toUpperCase()} in the database.`;
+                    return;
+                }
+
+                loading.style.display = 'none';
+
+                data.forEach((q, index) => {
+                    const shortId = q.short_id || q.id;
+                    const actualAnsLetter = (q.correct_answer || q.answer || "N/A").toUpperCase().trim();
+                    
+                    let actualAnsText = "N/A";
+                    if (actualAnsLetter === 'A') actualAnsText = q.option_a;
+                    if (actualAnsLetter === 'B') actualAnsText = q.option_b;
+                    if (actualAnsLetter === 'C') actualAnsText = q.option_c;
+                    if (actualAnsLetter === 'D') actualAnsText = q.option_d || q.option_D;
+
+                    const cardHtml = `
+                        <div class="question-card">
+                            <div class="q-meta">
+                                <span>${(q.subject || subject).toUpperCase()} • Q${index + 1}</span>
+                            </div>
+                            
+                            <div class="q-text">
+                                ${prepText(q.question_text)}
+                                
+                                <div style="display: block;">
+                                    <span class="report-badge">
+                                        <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"></path></svg>
+                                        Report ID: ${shortId}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="option-box">
+                                <div class="opt-letter">A</div> <span class="opt-text">${prepText(q.option_a)}</span>
+                            </div>
+                            <div class="option-box">
+                                <div class="opt-letter">B</div> <span class="opt-text">${prepText(q.option_b)}</span>
+                            </div>
+                            <div class="option-box">
+                                <div class="opt-letter">C</div> <span class="opt-text">${prepText(q.option_c)}</span>
+                            </div>
+                            <div class="option-box">
+                                <div class="opt-letter">D</div> <span class="opt-text">${prepText(q.option_d || q.option_D)}</span>
+                            </div>
+
+                            <button class="btn-reveal" onclick="revealAnswer(this, 'ans-block-${shortId}')">
+                                👁️ Show Answer
+                            </button>
+
+                            <div class="answer-block" id="ans-block-${shortId}">
+                                <span class="correct-title">Correct Option: ${actualAnsLetter}</span>
+                                <span class="correct-val">${prepText(actualAnsText)}</span>
+                            </div>
+                        </div>
+                    `;
+                    canvas.innerHTML += cardHtml;
+                });
+
+                bottomControls.style.display = 'block';
+
+                if (window.MathJax) {
+                    MathJax.typesetPromise();
+                }
+
+                document.getElementById('questions-canvas').scrollIntoView({ behavior: 'smooth' });
+
+            } catch (err) {
+                console.error("Vault Error:", err);
+                loading.innerHTML = `<span style="color: #dc2626;">Error querying database: ${err.message}</span>`;
+            } finally {
+                topBtn.disabled = false;
+                bottomBtn.disabled = false;
+            }
+        }
+
+        function revealAnswer(btnElement, blockId) {
+            const ansBlock = document.getElementById(blockId);
+            ansBlock.style.display = 'block';
+            btnElement.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

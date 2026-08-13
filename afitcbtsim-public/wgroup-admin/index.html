@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Premium Group Admin - AFIT CBT Simulator</title>
+    
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+
+    <style>
+        body { background-color: #f1f5f9; color: #0f172a; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        
+        #auth-loader {
+            position: fixed; inset: 0; background: #0f172a; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;
+        }
+
+        #admin-dashboard { display: none; }
+        
+        .admin-nav {
+            height: 70px; background: #0f172a; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 5%; border-bottom: 1px solid #1e293b; position: sticky; top: 0; z-index: 100;
+            color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .admin-nav-title { font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        
+        .admin-wrapper { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+
+        .header-actions {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 15px;
+        }
+
+        .data-panel {
+            background: white; padding: 1.5rem; border-radius: 24px; border: 1px solid #e2e8f0;
+            box-shadow: 0 15px 35px -10px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box;
+        }
+
+        /* Responsive Table Wrapper */
+        .table-container { width: 100%; overflow-x: auto; max-height: 70vh; -webkit-overflow-scrolling: touch; }
+
+        /* TABLES */
+        .admin-table { width: 100%; border-collapse: collapse; text-align: left; min-width: 700px; }
+        .admin-table th { 
+            color: #475569; font-size: 0.8rem; text-transform: uppercase; padding: 1.2rem 1rem; 
+            border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; background: #f8fafc; z-index: 10;
+            font-weight: 800; white-space: nowrap; letter-spacing: 0.5px;
+        }
+        .admin-table td { padding: 1.2rem 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 500; color: #334155; font-size: 0.9rem; white-space: nowrap;}
+        .admin-table tr:hover td { background: #f8fafc; }
+
+        /* BUTTONS */
+        .btn-action {
+            background: white; border: 1px solid #cbd5e1; padding: 0.6rem 1rem; border-radius: 8px; 
+            font-weight: 700; cursor: pointer; color: #1e293b; transition: all 0.2s; font-family: 'Poppins'; font-size: 0.85rem;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            white-space: nowrap;
+        }
+        .btn-action:hover { background: #f1f5f9; transform: translateY(-1px); }
+        .btn-green { background: #10b981; color: white; border: none; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+        .btn-green:hover { background: #059669; color: white; }
+        .btn-blue { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        .btn-blue:hover { background: #dbeafe; }
+
+        /* STATUS BADGES */
+        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-pending { background: #fef9c3; color: #d97706; border: 1px solid #fde047; }
+        
+        /* TOAST */
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #10b981; color: #fff; text-align: center;
+            border-radius: 8px; padding: 12px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; 
+            transform: translateX(-50%); font-weight: 600; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+        @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+
+        /* 🚀 MOBILE RESPONSIVENESS */
+        @media (max-width: 768px) {
+            .admin-nav { padding: 0 1rem; height: 60px; }
+            .admin-nav-title { font-size: 1rem; }
+            .admin-nav-title svg { width: 24px; height: 24px; }
+            
+            .admin-wrapper { padding: 0 1rem; margin: 1rem auto; }
+            
+            .header-actions { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .header-actions h1 { font-size: 1.5rem !important; }
+            .header-actions p { font-size: 0.85rem !important; }
+            
+            .data-panel { padding: 1rem; border-radius: 16px; }
+            
+            .admin-table th { padding: 1rem 0.5rem; font-size: 0.75rem; }
+            .admin-table td { padding: 1rem 0.5rem; font-size: 0.85rem; }
+            
+            /* Scale down action buttons inside the table */
+            td .btn-action { padding: 0.4rem 0.6rem; font-size: 0.75rem; gap: 4px;}
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-loader">
+        <svg class="animate-spin" style="width: 40px; height: 40px; color: #38bdf8; margin-bottom: 15px;" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <h3 style="margin:0; font-size: 1.1rem; font-family: 'Poppins', sans-serif;">Verifying Clearance...</h3>
+    </div>
+
+    <div id="toast">Copied to clipboard!</div>
+
+    <div id="admin-dashboard">
+        <nav class="admin-nav">
+            <div class="admin-nav-title">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="100" height="100" rx="22" fill="#10b981"/>
+                    <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+                </svg>
+                PREMIUM GROUP ADMIN
+            </div>
+            <!-- 🚀 UPDATED BACK BUTTON LINK -->
+            <button onclick="window.location.href='../profile/index.html'" class="btn-action" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #334155; color: white; border: none;">← Back to Profile</button>
+        </nav>
+
+        <div class="admin-wrapper">
+            
+            <div class="header-actions">
+                <div>
+                    <h1 style="margin: 0; font-size: 1.8rem; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">Pending Approvals</h1>
+                    <p style="margin: 5px 0 0 0; color: #64748b; font-weight: 500;">Aspirants waiting to be added to the Premium WhatsApp Group.</p>
+                </div>
+                <div>
+                    <button onclick="fetchPendingVIPs()" class="btn-action" style="box-shadow: 0 4px 10px rgba(0,0,0,0.05);">🔄 Refresh List</button>
+                </div>
+            </div>
+
+            <div class="data-panel">
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Aspirant Name</th>
+                                <th>WhatsApp Number</th>
+                                <th>Course Applied</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vip-body">
+                            <tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 3rem;">Loading requests...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
+
+    <script>
+        if (typeof supabaseClient === 'undefined') {
+            const supabaseUrl = 'PASTE_YOUR_SUPABASE_URL_HERE';
+            const supabaseKey = 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE';
+            window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (!session) {
+                window.location.href = '../login/index.html';
+                return;
+            }
+
+            const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
+            
+            // 🚀 SMART ROLE CHECK: Allows both 'admin' and 'jnr-admin'
+            if (!profile || (profile.role !== 'admin' && profile.role !== 'jnr-admin')) {
+                alert("SECURITY LOCKOUT: Your account does not have administrative privileges.");
+                window.location.href = '../dashboard/index.html';
+                return;
+            }
+
+            document.getElementById('auth-loader').style.display = 'none';
+            document.getElementById('admin-dashboard').style.display = 'block';
+            
+            fetchPendingVIPs();
+        });
+
+        async function fetchPendingVIPs() {
+            const tbody = document.getElementById('vip-body');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 3rem;">Fetching data...</td></tr>';
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('id, full_name, whatsapp_number, course_applied, vip_group_status')
+                    .eq('vip_group_status', 'pending');
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 4rem 1rem;">
+                                <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
+                                <h3 style="margin: 0 0 5px 0; color: #0f172a; font-weight: 800;">You're all caught up!</h3>
+                                <p style="margin: 0; color: #64748b;">No pending Premium Group requests at the moment.</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                data.forEach(user => {
+                    const cleanCourse = user.course_applied ? user.course_applied.replace(/\[.*?\]/g, '').trim() : 'N/A';
+                    const safeNumber = user.whatsapp_number || 'N/A';
+
+                    tbody.innerHTML += `
+                        <tr id="row-${user.id}">
+                            <td><span class="status-badge badge-pending">Pending</span></td>
+                            <td style="font-weight: 700; color: #0f172a;">${user.full_name}</td>
+                            <td style="font-family: monospace; font-size: 1rem; color: #334155; font-weight: 600;">${safeNumber}</td>
+                            <td style="color: #64748b;">${cleanCourse}</td>
+                            <td style="text-align: right; display: flex; justify-content: flex-end; gap: 8px;">
+                                <button onclick="copyToClipboard('${safeNumber}')" class="btn-action btn-blue">
+                                    📋 Copy
+                                </button>
+                                <button onclick="markAsAdded('${user.id}')" class="btn-action btn-green" id="btn-${user.id}">
+                                    ✅ Added
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+            } catch (err) {
+                console.error("Fetch Error:", err);
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #ef4444; padding: 2rem;">Failed to load data. Check console.</td></tr>`;
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById("toast");
+                toast.innerText = "Number Copied: " + text;
+                toast.className = "show";
+                setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+                alert("Failed to copy number.");
+            });
+        }
+
+        async function markAsAdded(userId) {
+            const btn = document.getElementById(`btn-${userId}`);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Updating...';
+            btn.disabled = true;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .update({ vip_group_status: 'approved' })
+                    .eq('id', userId);
+
+                if (error) throw error;
+
+                // Smoothly remove the row from the table
+                const row = document.getElementById(`row-${userId}`);
+                row.style.opacity = '0';
+                row.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    row.remove();
+                    // Check if table is empty after removal
+                    if (document.getElementById('vip-body').children.length === 0) {
+                        fetchPendingVIPs(); // Trigger empty state
+                    }
+                }, 300);
+
+            } catch (err) {
+                console.error("Update Error:", err);
+                alert("Failed to update status. Check console.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

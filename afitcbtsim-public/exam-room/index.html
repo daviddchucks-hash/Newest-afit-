@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Examination - AFIT CBT Simulator</title>
+     <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png">
+    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+   <style>
+        /* CORE EXAM STYLES - STRICTLY NO COPYING */
+        body.exam-mode {
+            background-color: #f8fafc; 
+            color: #0f172a;
+            margin: 0; height: 100vh; overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            -webkit-user-select: none; user-select: none;
+        }
+
+        .exam-layout { display: flex; flex-direction: column; height: 100vh; display: none; }
+
+        /* PRE-EXAM START SCREEN */
+        .start-gate {
+            position: fixed; inset: 0; background: #0f172a; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; padding: 2rem; text-align: center;
+        }
+        .start-btn {
+            background: #2563eb; color: white; padding: 1.2rem 3rem; font-size: 1.2rem;
+            font-weight: 800; border-radius: 12px; border: none; cursor: pointer;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4); transition: transform 0.2s;
+            margin-top: 2rem;
+        }
+        .start-btn:hover { transform: scale(1.05); }
+
+        /* PREMIUM NAV */
+        .exam-nav {
+            height: 70px; background: white; 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 5%; border-bottom: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            flex-shrink: 0; z-index: 10;
+        }
+
+        .timer-badge {
+            background: #eff6ff; color: #1e40af; padding: 0.5rem 1.2rem;
+            border-radius: 8px; font-weight: 800; font-size: 1.1rem; border: 1px solid #bfdbfe;
+        }
+
+        /* 🚀 LAYOUT GRID (FIXED FOR LAPTOP SCROLLING) */
+        .exam-main { 
+            display: grid; grid-template-columns: 320px 1fr; 
+            flex-grow: 1; overflow: hidden; height: calc(100vh - 70px); 
+        }
+
+        /* 🚀 SIDEBAR (NAV DOTS INDEPENDENT SCROLL) */
+        .nav-sidebar {
+            background: #f1f5f9; border-right: 1px solid #e2e8f0;
+            display: flex; flex-direction: column; padding: 1.5rem;
+            height: 100%; box-sizing: border-box;
+        }
+
+        .grid-status {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+            overflow-y: auto; margin-bottom: 1.5rem; padding-right: 5px;
+            flex-grow: 1; align-content: start;
+        }
+        
+        /* Custom Scrollbar for Dots */
+        .grid-status::-webkit-scrollbar { width: 6px; }
+        .grid-status::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .q-dot {
+            aspect-ratio: 1; border-radius: 8px; background: white; color: #64748b;
+            display: flex; justify-content: center; align-items: center; font-weight: 700;
+            font-size: 0.85rem; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.2s;
+        }
+        .q-dot.active { border: 2px solid #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); }
+        .q-dot.answered { background: #10b981; color: white; border-color: #10b981; }
+
+        /* 🚀 QUESTION CANVAS (INDEPENDENT SCROLL) */
+        .question-canvas {
+            padding: 2rem 5% 0 5%; overflow-y: auto; display: flex; flex-direction: column; 
+            align-items: center; background: #f8fafc; height: 100%; box-sizing: border-box;
+            position: relative;
+        }
+        
+        .question-canvas::-webkit-scrollbar { width: 8px; }
+        .question-canvas::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .question-card {
+            background: white; padding: 3rem; border-radius: 20px; width: 100%; max-width: 900px;
+            border: 1px solid #e2e8f0; box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem; flex-shrink: 0;
+        }
+
+        .q-meta { 
+            color: #64748b; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; 
+            margin-bottom: 1.5rem; display: flex; justify-content: space-between; 
+            align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 1rem; 
+        }
+        
+        .db-id-badge {
+            background: #f1f5f9; color: #64748b; padding: 0.3rem 0.8rem;
+            border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+        }
+
+        .q-text { font-size: 1.25rem; line-height: 1.7; font-weight: 500; margin-bottom: 2.5rem; color: #1e293b; }
+
+        /* CLICKABLE OPTIONS */
+        .option-box {
+            display: flex; align-items: center; padding: 1.2rem 1.5rem; background: #f8fafc;
+            border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 1rem; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .option-box:hover { background: #f1f5f9; border-color: #cbd5e1; }
+        .option-box.selected { background: #eff6ff; border-color: #2563eb; }
+        
+        .opt-letter {
+            width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0;
+            display: flex; justify-content: center; align-items: center; font-weight: 800; margin-right: 15px; color: #475569;
+        }
+        .option-box.selected .opt-letter { background: #2563eb; color: white; }
+        .opt-text { font-size: 1.05rem; color: #334155; }
+
+        /* 🚀 STICKY CONTROLS (ALWAYS VISIBLE AT BOTTOM) */
+        .controls { 
+            display: flex; gap: 15px; width: 100%; max-width: 900px; justify-content: space-between;
+            position: sticky; bottom: 0; background: #f8fafc; padding: 1rem 0 2rem 0; z-index: 100;
+            margin-top: auto;
+        }
+        /* Gradient fade to hide scroll clipping under buttons */
+        .controls::before {
+            content: ''; position: absolute; top: -20px; left: 0; width: 100%; height: 20px;
+            background: linear-gradient(to top, #f8fafc, transparent); pointer-events: none;
+        }
+
+        .btn-exam { padding: 1rem 2rem; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; font-size: 1rem; transition: background 0.2s;}
+        .btn-prev { background: #e2e8f0; color: #475569; }
+        .btn-prev:hover { background: #cbd5e1; }
+        .btn-next { background: #2563eb; color: white; }
+        .btn-next:hover { background: #1d4ed8; }
+        .btn-submit { background: #ef4444; color: white; padding: 1rem; border-radius: 10px; font-weight: 800; border: none; cursor: pointer; margin-top: auto;}
+
+        /* STRIKE SYSTEM MODAL */
+        .strike-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000;
+            display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
+        }
+        .strike-modal {
+            background: white; padding: 3rem; border-radius: 20px; text-align: center; max-width: 400px;
+        }
+        .strike-title { color: #dc2626; font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem; }
+        .strike-btn { background: #1e293b; color: white; padding: 0.8rem 2rem; border-radius: 8px; border: none; font-weight: bold; margin-top: 1.5rem; cursor: pointer;}
+
+        /* MOBILE RESPONSIVENESS */
+        @media (max-width: 900px) {
+            body.exam-mode { overflow-y: auto; }
+            .exam-layout { height: auto; min-height: 100vh; }
+            .exam-main { display: flex; flex-direction: column; height: auto; overflow: visible;}
+            .nav-sidebar { padding: 1rem; border-right: none; border-bottom: 1px solid #e2e8f0; height: auto; }
+            .grid-status { display: flex; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; gap: 8px; flex-grow: 0; }
+            .q-dot { flex-shrink: 0; width: 40px; height: 40px; }
+            .btn-submit { margin-top: 0; width: 100%; }
+            .question-canvas { padding: 1.5rem 1rem; height: auto; overflow: visible; display: block;}
+            .question-card { padding: 1.5rem; border-radius: 16px; margin-bottom: 1.5rem;}
+            .q-meta { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .db-id-badge { align-self: flex-start; }
+            .controls { flex-direction: column; width: 100%; position: relative; padding: 0; }
+            .controls::before { display: none; }
+            .btn-exam { width: 100%; }
+        }
+    </style>
+</head>
+<body class="exam-mode">
+
+    <div id="start-gate" class="start-gate">
+        <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Post-UTME Examination</h1>
+        <p style="color: #94a3b8; max-width: 600px; line-height: 1.6;">
+            <strong>WARNING:</strong> This exam operates under strict anti-malpractice protocols. 
+            Do not minimize your browser, switch tabs, hit the "Back" button, or exit full screen. Doing so will result in an automatic strike. 3 strikes will submit your exam immediately.
+        </p>
+        <button class="start-btn" id="init-btn" onclick="initiateExam()">Loading Profile...</button>
+    </div>
+
+    <div id="strike-modal" class="strike-modal-overlay">
+        <div class="strike-modal">
+            <div class="strike-title">⚠️ MALPRACTICE WARNING</div>
+            <p id="strike-msg" style="color: #475569; font-weight: 500;"></p>
+            <p style="margin-top: 10px; font-weight: 800; color: #dc2626;">Strike <span id="strike-count"></span> of 3</p>
+            <button class="strike-btn" onclick="closeStrikeModal()">Acknowledge & Return</button>
+        </div>
+    </div>
+
+    <div id="exam-layout" class="exam-layout">
+        <nav class="exam-nav">
+            <div style="font-weight: 800; font-size: 1.2rem; color: #1e293b;">AFIT CBT Simulator</div>
+            <div class="timer-badge" id="exam-timer">40:00</div> 
+        </nav>
+
+        <main class="exam-main">
+            <aside class="nav-sidebar">
+                <div style="font-size: 0.8rem; font-weight: 800; color: #94a3b8; margin-bottom: 1rem; text-transform: uppercase;">Question Navigation</div>
+                <div class="grid-status" id="dot-grid"></div>
+                <button class="btn-submit" onclick="submitExam(false)">Submit Exam</button>
+            </aside>
+
+            <section class="question-canvas">
+                <div id="loading-state" style="font-size: 1.1rem; color: #64748b; margin-top: 3rem;">Preparing your paper...</div>
+                
+                <div id="q-card" class="question-card" style="display: none;">
+                    <div class="q-meta">
+                        <span id="q-subject-text" style="color: #2563eb;">SUBJECT</span>
+                        <span class="db-id-badge" id="q-db-id">Report ID: </span>
+                    </div>
+                    
+                    <div class="q-text" id="q-body"></div>
+
+                    <div id="options-stack">
+                        <div class="option-box" id="box-A" onclick="selectAnswer('A')">
+                            <div class="opt-letter">A</div> <span class="opt-text" id="text-A"></span>
+                        </div>
+                        <div class="option-box" id="box-B" onclick="selectAnswer('B')">
+                            <div class="opt-letter">B</div> <span class="opt-text" id="text-B"></span>
+                        </div>
+                        <div class="option-box" id="box-C" onclick="selectAnswer('C')">
+                            <div class="opt-letter">C</div> <span class="opt-text" id="text-C"></span>
+                        </div>
+                        <div class="option-box" id="box-D" onclick="selectAnswer('D')">
+                            <div class="opt-letter">D</div> <span class="opt-text" id="text-D"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls" id="control-bar" style="display: none;">
+                    <button class="btn-exam btn-prev" onclick="move(-1)">← Previous</button>
+                    <button class="btn-exam btn-next" onclick="move(1)">Next Question →</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
+
+    <script>
+        let questions = [];
+        let index = 0;
+        let userAnswers = {}; 
+        let userProfile = null; 
+        
+        // --- SECURITY ENGINE ---
+        let examActive = false;
+        let strikes = 0;
+        const MAX_STRIKES = 3;
+        let isDeliberateSubmit = false; 
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+            if (!session || authError) return window.location.href = '../login/index.html';
+
+            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+            userProfile = profile;
+
+            // 🚀 URL BYPASS PROTECTION (Limit reduced to 1)
+            const { data: resultsData } = await supabaseClient.from('results').select('id').eq('student_id', session.user.id);
+            const actualTestsTaken = resultsData ? resultsData.length : 0;
+
+            if (!profile.has_paid && actualTestsTaken >= 1) {
+                alert("SECURITY LOCK: You have exhausted your 1 free test. Please upgrade to Premium to continue.");
+                window.location.href = '../dashboard/index.html';
+                return; // Stop the exam room from loading
+            }
+
+            // 🚀 BROWSER HISTORY TRAP
+            history.pushState(null, null, location.href);
+            window.onpopstate = function () {
+                if (examActive) {
+                    history.go(1); 
+                    issueStrike("You attempted to use the Browser Back button during an active exam.");
+                }
+            };
+
+            const startBtn = document.getElementById('init-btn');
+            startBtn.innerText = 'I Understand - Start Exam';
+            startBtn.disabled = false;
+        });
+
+        function initiateExam() {
+            if(!userProfile) return; 
+
+            let elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log("Fullscreen ignored"));
+            }
+
+            document.getElementById('start-gate').style.display = 'none';
+            document.getElementById('exam-layout').style.display = 'flex';
+            
+            fetchExamQuestions(); 
+            
+            setTimeout(() => {
+                examActive = true;
+                localStorage.setItem('cbt_active_exam_trap', 'TRUE');
+                startTimer(40 * 60); 
+            }, 2000);
+        }
+
+        // 🚀 BROWSER REFRESH/CLOSE WARNING
+        window.addEventListener('beforeunload', function (e) {
+            if (examActive && !isDeliberateSubmit) {
+                e.preventDefault();
+                e.returnValue = 'You are currently in an exam. Leaving this page will result in a ZERO score.';
+            }
+        });
+
+        // 🚀 ABANDONMENT PENALTY
+        if (localStorage.getItem('cbt_active_exam_trap') === 'TRUE') {
+            localStorage.removeItem('cbt_active_exam_trap');
+            alert("SYSTEM ALERT: You abandoned an ongoing exam session. Your previous paper was submitted automatically and marked as 0.");
+            forceZeroSubmission();
+        }
+
+        function forceZeroSubmission() {
+            const examData = {
+                totalQuestions: questions.length || 50,
+                correctCount: 0,
+                breakdown: { english: 0, mathematics: 0, physics: 0, chemistry: 0, gns: 0, economics: 0, literature: 0, government: 0, commerce: 0 },
+                questions: questions, // 🚀 Saves the questions
+                userAnswers: userAnswers // 🚀 Saves the answers
+            };
+            localStorage.setItem('cbt_recent_exam', JSON.stringify(examData));
+            window.location.href = '../result/index.html';
+        }
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden && examActive && !isDeliberateSubmit) {
+                issueStrike("You switched tabs or minimized the browser.");
+            }
+        });
+
+        document.addEventListener("fullscreenchange", () => {
+            if (!document.fullscreenElement && examActive && !isDeliberateSubmit) {
+                issueStrike("You exited Full Screen mode.");
+            }
+        });
+
+        function issueStrike(reason) {
+            strikes++;
+            if (strikes > MAX_STRIKES) {
+                alert("Maximum strikes reached. Your exam is being automatically submitted for malpractice.");
+                submitExam(true);
+            } else {
+                document.getElementById('strike-msg').innerText = reason;
+                document.getElementById('strike-count').innerText = strikes;
+                document.getElementById('strike-modal').style.display = 'flex';
+            }
+        }
+
+        function closeStrikeModal() {
+            document.getElementById('strike-modal').style.display = 'none';
+            let elem = document.documentElement;
+            if (elem.requestFullscreen) elem.requestFullscreen().catch(err => console.log(err));
+        }
+
+        // 🚀 THE ULTIMATE UNIVERSAL MOJIBAKE DECODER
+        const MOJIBAKE_MAP = {
+            "a\u0161": "\\sqrt{", "â€²â€²": "-", "âr′": "-", "\\l_s": "\\theta", "\\l,": "\\theta", "i\\in": "\\pi", "Î\\_s": "\\theta",
+            "kgmal": "kgm^{-3}", "Nma 2": "Nm^{-2}", "msâˆ’1": "ms^{-1}", "msâˆ’2": "ms^{-2}",
+            "â€™": "'", "â€˜": "'", "â€œ": '"', "â€ ": '"', "â€": '"', 
+            "â€š": "‚", "â€ž": "„", "â€“": "-", "â€”": "-", "â€¦": "...", "â€¢": "•",
+            "â‚¬": "€", "Â£": "£", "â‚¦": "₦",
+            "âˆ’": "−", "â‰¡": "≡", "â‰ˆ": "≈", "âˆ¼": "∼", "âˆ ": "∝",
+            "âˆ«": "∫", "âˆ‘": "∑", "âˆЏ": "∏", "âˆ†": "Δ", "âˆ‡": "∇",
+            "âˆˆ": "∈", "âˆ‰": "∉", "âˆ©": "∩", "âˆª": "∪", "âˆ´": "∴", "âˆµ": "∵",
+            "âˆ—": "∗", "âˆ˜": "∘", "âŠ‚": "⊂", "âŠƒ": "⊃", "âŠ†": "⊆", "âŠ‡": "⊇",
+            "âŠ•": "⊕", "âŠ—": "⊗", "âŠ¥": "⊥", "â‹…": "⋅",
+            "Ã—": "×", "Ã·": "÷", "Â°": "°", "Â±": "±", "â‰ ": "≠",
+            "â‰¤": "≤", "â‰¥": "≥", "âˆž": "∞", "âˆš": "√",
+            "Â²": "^2", "Â³": "^3", "Â¹": "^1",
+            "Â¼": "¼", "Â½": "½", "Â¾": "¾",
+            "â†’": "→", "â‡Œ": "⇌", "â† ": "←", "â†‘": "↑", "â†“": "↓", "â†”": "↔",
+            "â‡’": "⇒", "â‡ ": "⇐", "â‡‘": "⇑", "â‡“": "⇓", "â‡”": "⇔",
+            "Î±": "α", "Î²": "β", "Î³": "γ", "Î´": "δ", "Îµ": "ε", "Î¶": "ζ", 
+            "Î·": "η", "Î¸": "θ", "Î¹": "ι", "Îº": "κ", "Î»": "λ", "Î¼": "μ", "Âµ": "μ",
+            "Î½": "ν", "Î¾": "ξ", "Î¿": "ο", "Ï€": "π", "Ï ": "ρ", "Ï‚": "ς", 
+            "Ïƒ": "σ", "Ï„": "τ", "Ï…": "υ", "Ï†": "φ", "Ï‡": "χ", "Ïˆ": "ψ", "Ï‰": "ω",
+            "Â": " " 
+        };
+
+        const MOJIBAKE_KEYS = Object.keys(MOJIBAKE_MAP).sort((a, b) => b.length - a.length);
+
+        function prepText(txt) {
+            if (!txt) return "";
+            let c = txt;
+            
+            // 1. Decode Mojibake First
+            for (let i = 0; i < MOJIBAKE_KEYS.length; i++) {
+                const corrupted = MOJIBAKE_KEYS[i];
+                const fixed = MOJIBAKE_MAP[corrupted];
+                c = c.split(corrupted).join(fixed);
+            }
+            
+            // 2. The Auto-Delimiter (Wraps raw latex in \( \))
+            const mathCommands = ['\\frac', '\\theta', '\\pi', '\\sqrt', '\\alpha', '\\beta', '\\int', '\\sum', '\\sin', '\\cos', '\\tan', '^'];
+            const hasMath = mathCommands.some(cmd => c.includes(cmd));
+            const hasDelimiters = c.includes('$') || c.includes('\\(') || c.includes('\\[');
+            
+            if (hasMath && !hasDelimiters) {
+                c = '\\( ' + c + ' \\)';
+            }
+            
+            return c;
+        }
+
+        async function fetchExamQuestions() {
+            try {
+                const course = userProfile.course_applied || "";
+                let subjectsToFetch = [];
+                let limits = [15, 5, 10, 10, 10]; 
+
+                if (course.includes("International Relations")) {
+                    subjectsToFetch = ['english', 'gns', 'economics', 'literature', 'government'];
+                } 
+                else if (course.includes("Accounting") || course.includes("Business") || course.includes("Economics")) {
+                    const match = course.match(/\[(.*?)\]/);
+                    const elective = match ? match[1].toLowerCase() : 'commerce'; 
+                    subjectsToFetch = ['english', 'gns', 'mathematic', 'economics', elective];
+                } 
+                else {
+                    subjectsToFetch = ['english', 'gns', 'mathematic', 'physics', 'chemistry'];
+                }
+
+                const fetchPromises = subjectsToFetch.map((subj, idx) => {
+                    if (userProfile.has_paid) {
+                        // PREMIUM TIER: True Randomization
+                        return supabaseClient.rpc('get_random_questions', { 
+                            subj_param: subj, 
+                            lim_param: limits[idx] 
+                        });
+                    } else {
+                        // 🚀 FREE TIER ANTI-ABUSE ALGORITHM
+                        // Always grabs the first exact X questions ordered by ID. 
+                        // It will NEVER randomize, so free users always get the exact same test.
+                        return supabaseClient.from('questions')
+                            .select('*')
+                            .ilike('subject', `%${subj}%`)
+                            .order('id', { ascending: true })
+                            .limit(limits[idx]);
+                    }
+                });
+
+                const results = await Promise.all(fetchPromises);
+                
+                let allQuestions = [];
+                results.forEach(res => {
+                    if (res.error) throw res.error;
+                    if (res.data) allQuestions = allQuestions.concat(res.data);
+                });
+
+                if (allQuestions.length === 0) {
+                    alert("Database connected, but no questions were found! Check your table.");
+                    return;
+                }
+                
+                // Only shuffle questions if they are a premium user
+                // Free users will see the exact same layout order every time.
+                if (userProfile.has_paid) {
+                    for (let i = allQuestions.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
+                    }
+                }
+                
+                questions = allQuestions;
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('q-card').style.display = 'block';
+                document.getElementById('control-bar').style.display = 'flex';
+                
+                buildGrid();
+                render();
+            } catch (e) { 
+                console.error("Fetch Error:", e);
+                alert("Error loading paper. Please check connection."); 
+            }
+        }
+
+        function buildGrid() {
+            const container = document.getElementById('dot-grid');
+            container.innerHTML = '';
+            questions.forEach((_, i) => {
+                const d = document.createElement('div');
+                d.className = 'q-dot';
+                d.id = `dot-${i}`;
+                d.innerText = i + 1;
+                d.onclick = () => { index = i; render(); };
+                container.appendChild(d);
+            });
+        }
+
+        function selectAnswer(letter) {
+            userAnswers[index] = letter; 
+            document.getElementById(`dot-${index}`).classList.add('answered'); 
+            render(); 
+        }
+
+        function render() {
+            const q = questions[index];
+            
+            document.getElementById('q-subject-text').innerText = `${(q.subject || "Subject").toUpperCase()} • Q${index + 1} of ${questions.length}`;
+            document.getElementById('q-db-id').innerText = `Report ID: ${q.short_id || q.id}`;
+            
+            // 🚀 FIXED: Switched from innerText to innerHTML so formatting tags (<i>, <b>, <u>) work properly!
+            document.getElementById('q-body').innerHTML = prepText(q.question_text);
+            document.getElementById('text-A').innerHTML = prepText(q.option_a);
+            document.getElementById('text-B').innerHTML = prepText(q.option_b);
+            document.getElementById('text-C').innerHTML = prepText(q.option_c);
+            document.getElementById('text-D').innerHTML = prepText(q.option_d || q.option_D);
+            
+            ['A', 'B', 'C', 'D'].forEach(opt => document.getElementById(`box-${opt}`).classList.remove('selected'));
+            
+            if (userAnswers[index]) {
+                document.getElementById(`box-${userAnswers[index]}`).classList.add('selected');
+            }
+
+            document.querySelectorAll('.q-dot').forEach(d => d.classList.remove('active'));
+            const activeDot = document.getElementById(`dot-${index}`);
+            activeDot.classList.add('active');
+            
+            if(window.innerWidth <= 900) {
+                activeDot.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        function move(dir) {
+            if (index + dir >= 0 && index + dir < questions.length) {
+                index += dir;
+                render();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+       function submitExam(isAutoSubmit = false) {
+            if (!isAutoSubmit) {
+                let answeredCount = Object.keys(userAnswers).length;
+                let totalCount = questions.length;
+                let confirmMsg = `Are you sure you want to submit?\n\nYou have answered ${answeredCount} out of ${totalCount} questions.`;
+                
+                if (!confirm(confirmMsg)) return;
+            }
+
+            isDeliberateSubmit = true;
+            examActive = false;
+            localStorage.removeItem('cbt_active_exam_trap');
+            
+            let correctCount = 0;
+            let breakdown = { english: 0, gns: 0, mathematics: 0, physics: 0, chemistry: 0, literature: 0, government: 0, commerce: 0, economics: 0 };
+
+            questions.forEach((q, i) => {
+                let userAns = userAnswers[i];
+                let actualAns = q.correct_answer || q.answer; 
+                
+                if (userAns && actualAns && userAns.toUpperCase() === actualAns.toUpperCase()) {
+                    correctCount++;
+                    let subj = q.subject.toLowerCase();
+                    
+                    if (subj.includes('math')) subj = 'mathematics';
+                    if (subj.includes('gns') || subj.includes('general')) subj = 'gns';
+                    
+                    if(breakdown[subj] !== undefined) breakdown[subj]++;
+                    else breakdown[subj] = 1; 
+                }
+            });
+
+            // 🚀 UPDATE: Now we are saving the questions and userAnswers too!
+            const examData = {
+                totalQuestions: questions.length,
+                correctCount: correctCount,
+                breakdown: breakdown,
+                questions: questions,
+                userAnswers: userAnswers
+            };
+
+            localStorage.setItem('cbt_recent_exam', JSON.stringify(examData));
+            
+            alert("Exam Submitted! Grading paper and routing to Results...");
+            window.location.href = '../result/index.html';
+        }
+        function startTimer(duration) {
+            let timer = duration, minutes, seconds;
+            let display = document.getElementById('exam-timer');
+            
+            let interval = setInterval(function () {
+                if (!examActive) return; 
+
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    clearInterval(interval);
+                    alert("Time is up! Submitting automatically.");
+                    submitExam(true);
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

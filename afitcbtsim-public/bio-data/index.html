@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png">
+    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Profile - AFIT CBT Simulator</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../static/main.css">
+    <style>
+        .bio-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .auth-page { overflow-y: auto; background-color: var(--bg-gray); }
+        .auth-form-container { overflow-y: auto; align-items: flex-start; padding: 3rem 1.5rem; }
+        .auth-form-wrapper { margin: auto; padding: 3rem 2.5rem; background: var(--white); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); width: 100%; }
+        .dynamic-elective { display: none; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Loading Overlay while checking security */
+        #security-loader {
+            position: fixed; inset: 0; background: #0f172a; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;
+        }
+
+        @media (max-width: 600px) {
+            .bio-form-grid { grid-template-columns: 1fr; gap: 0; }
+            .auth-form-container { padding: 2rem 1rem; }
+            .auth-form-wrapper { padding: 2rem 1.5rem; }
+            .auth-title { font-size: 1.6rem !important; }
+        }
+    </style>
+</head>
+<body class="auth-page">
+
+    <!-- 🚀 SECURITY LOADER (Covers screen until Auth is verified) -->
+    <div id="security-loader">
+        <svg class="animate-spin" style="width: 40px; height: 40px; color: #38bdf8; margin-bottom: 15px;" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <h3 style="margin:0; font-size: 1.1rem; font-family: 'Poppins', sans-serif;">Verifying Session...</h3>
+    </div>
+
+    <div class="auth-split-layout" id="main-content" style="display: none;">
+        
+        <div class="auth-banner" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
+            <div class="banner-content">
+                <h2>Personalize Your Journey.</h2>
+                <p>We use this information to tailor your dashboard and serve you the exact Post-UTME subject combination for your chosen course.</p>
+                <div class="banner-graphic">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#ffffff" fill-opacity="0.1" d="M39.9,-65.7C54.1,-58.5,69.7,-51.2,77.5,-38.7C85.3,-26.2,85.3,-8.4,80.7,7C76.1,22.4,66.8,35.4,56.2,46.3C45.6,57.2,33.7,66,19.8,71.2C5.9,76.4,-10,78,-23.4,72.9C-36.8,67.8,-47.7,56,-58.3,44.1C-68.9,32.2,-79.2,20.2,-82.9,6.2C-86.6,-7.8,-83.7,-23.8,-75,-36.5C-66.3,-49.2,-51.8,-58.6,-38,-65.8C-24.2,-73,-12.1,-78,1,-79.4C14.1,-80.8,28.2,-78.6,39.9,-65.7Z" transform="translate(100 100) scale(1.1)" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-form-container">
+            <div class="auth-form-wrapper" style="max-width: 520px;">
+                
+                 <div class="logo" style="display: flex; align-items: center; margin-bottom: 2rem;">
+                    <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); flex-shrink: 0;">
+                        <rect width="100" height="100" rx="22" fill="url(#logo-grad)"/>
+                        <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+                        <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs><linearGradient id="logo-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop stop-color="#0f172a"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
+                    </svg>
+                    <span style="font-weight: 800; color: #1e293b; margin-left: 12px; font-size: 1.2rem; letter-spacing: -0.5px;">AFIT CBT SIM</span>
+                </div>
+                
+                <h2 class="auth-title" style="font-size: 1.8rem;">Almost There!</h2>
+                <p class="auth-subtitle">Tell us a bit about yourself to set up your personalized dashboard.</p>
+
+                <form id="bio-form" onsubmit="saveBioData(event)">
+                    
+                    <div class="input-group">
+                        <label for="full-name">Full Name (As it appears on documents)</label>
+                        <input type="text" id="full-name" placeholder="e.g. Jane Doe" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" placeholder="e.g. 08012345678" required>
+                    </div>
+
+                    <div class="bio-form-grid">
+                        <div class="input-group">
+                            <label for="program">Program</label>
+                            <select id="program" required onchange="populateCourses()">
+                                <option value="" disabled selected>Select...</option>
+                                <option value="ND">ND (National Diploma)</option>
+                                <option value="Degree">Degree (B.Sc / B.Eng)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="course">Course Applied For</label>
+                            <select id="course" required onchange="handleCourseChange()" disabled>
+                                <option value="" disabled selected>Select Program First...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group dynamic-elective" id="elective-container">
+                        <label for="elective">Choose Your 4th Subject (Elective)</label>
+                        <select id="elective">
+                            <option value="Commerce">Commerce</option>
+                            <option value="Government">Government</option>
+                        </select>
+                    </div>
+
+                    <div class="bio-form-grid">
+                        <div class="input-group">
+                            <label for="state">State of Origin</label>
+                            <input type="text" id="state" placeholder="e.g. Kaduna" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="jamb-score">JAMB Score</label>
+                            <input type="number" id="jamb-score" placeholder="e.g. 250" required min="0" max="400">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="save-btn" class="auth-btn">Save Profile & Continue</button>
+                    <div id="bio-message" style="margin-top: 10px; font-size: 0.875rem; text-align: center; font-weight: bold;"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
+
+    <script>
+        // 🚀 PAGE SECURITY LOCK ENGINE
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (typeof supabaseClient === 'undefined') return;
+
+            try {
+                const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+                
+                // 1. Kick them out if not logged in
+                if (!session || authError) {
+                    window.location.replace('../login/index.html');
+                    return;
+                }
+
+                // 2. Check if they already have a full profile
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('full_name')
+                    .eq('id', session.user.id)
+                    .maybeSingle();
+
+                if (profile && profile.full_name && profile.full_name.trim() !== "") {
+                    // Profile exists, kick them to dashboard
+                    window.location.replace('../dashboard/index.html');
+                    return;
+                }
+
+                // 3. User is logged in but has NO profile. Reveal the form!
+                document.getElementById('security-loader').style.display = 'none';
+                document.getElementById('main-content').style.display = 'grid';
+
+            } catch (err) {
+                console.error("Security Verification Error:", err);
+                window.location.replace('../login/index.html');
+            }
+        });
+
+        const courseData = {
+            "Degree": [
+                {
+                    group: "Engineering & Technology",
+                    options: [
+                        "Aerospace Engineering", "Automotive Engineering", "Civil Engineering", 
+                        "Computer Science", "Cyber Security", "Electrical/Electronics Eng.", 
+                        "Information Technology", "Mechanical Engineering", "Mechatronics Engineering", 
+                        "Metallurgical Engineering", "Telecommunication Eng."
+                    ]
+                },
+                {
+                    group: "Pure & Applied Sciences",
+                    options: [
+                        "Chemistry", "Mathematics", "Physics", "Physics with Electronics", "Statistics"
+                    ]
+                },
+                {
+                    group: "Management & Social Sciences",
+                    options: ["Accounting", "Business Administration", "Economics"]
+                },
+                {
+                    group: "Arts & Humanities",
+                    options: ["International Relations"]
+                }
+            ],
+            "ND": [
+                {
+                    group: "Engineering & Technology",
+                    options: [
+                        "Aircraft Engineering Technology", "Civil Engineering Technology", 
+                        "Computer Science", "Electrical/Electronics Eng. Tech.", "Mechanical Engineering Technology"
+                    ]
+                },
+                {
+                    group: "Management & Social Sciences",
+                    options: ["Business Administration"]
+                }
+            ]
+        };
+
+        function populateCourses() {
+            const program = document.getElementById('program').value;
+            const courseSelect = document.getElementById('course');
+            const electiveContainer = document.getElementById('elective-container');
+            
+            courseSelect.innerHTML = '<option value="" disabled selected>Select Course...</option>';
+            courseSelect.disabled = false;
+            electiveContainer.style.display = 'none';
+            document.getElementById('elective').removeAttribute('required');
+
+            if (courseData[program]) {
+                courseData[program].forEach(category => {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = category.group;
+                    
+                    category.options.forEach(courseName => {
+                        const option = document.createElement('option');
+                        option.value = courseName;
+                        option.textContent = courseName;
+                        optgroup.appendChild(option);
+                    });
+                    
+                    courseSelect.appendChild(optgroup);
+                });
+            }
+        }
+
+        function handleCourseChange() {
+            const course = document.getElementById('course').value || "";
+            const electiveContainer = document.getElementById('elective-container');
+            
+            if (course.includes('Accounting') || course.includes('Business') || course.includes('Economics')) {
+                electiveContainer.style.display = 'block';
+                document.getElementById('elective').setAttribute('required', 'true');
+            } else {
+                electiveContainer.style.display = 'none';
+                document.getElementById('elective').removeAttribute('required');
+            }
+        }
+
+        async function saveBioData(event) {
+            event.preventDefault();
+            const btn = document.getElementById('save-btn');
+            const msg = document.getElementById('bio-message');
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
+            msg.innerText = ""; 
+
+            const fullName = document.getElementById('full-name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const program = document.getElementById('program').value;
+            let course = document.getElementById('course').value;
+            const state = document.getElementById('state').value.trim();
+            const jambScore = parseInt(document.getElementById('jamb-score').value, 10);
+
+            const electiveContainer = document.getElementById('elective-container');
+            if (electiveContainer.style.display === 'block') {
+                const elective = document.getElementById('elective').value;
+                course = `${course} [${elective}]`; 
+            }
+
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+
+            if (authError || !user) {
+                msg.innerText = "Authentication error. Please log in again.";
+                msg.style.color = "red";
+                btn.innerText = 'Save Profile & Continue';
+                btn.disabled = false;
+                
+                // Force back to login after showing error
+                setTimeout(() => window.location.replace('../login/index.html'), 1500);
+                return;
+            }
+
+            try {
+                // Attempt to update existing row
+                const { data: updatedData, error: dbError } = await supabaseClient
+                    .from('profiles')
+                    .update({
+                        full_name: fullName,
+                        phone_number: phone,
+                        program_type: program,
+                        course_applied: course, 
+                        state_of_origin: state,
+                        jamb_score: jambScore
+                    })
+                    .eq('id', user.id)
+                    .select();
+
+                if (dbError) throw dbError;
+
+                // Fallback to inserting a brand new row
+                if (!updatedData || updatedData.length === 0) {
+                    const { error: insertError } = await supabaseClient.from('profiles').insert([{
+                        id: user.id,
+                        email: user.email,
+                        full_name: fullName,
+                        phone_number: phone,
+                        program_type: program,
+                        course_applied: course, 
+                        state_of_origin: state,
+                        jamb_score: jambScore,
+                        role: 'student',
+                        has_paid: false,
+                        tests_taken: 0
+                    }]);
+
+                    if (insertError) throw insertError;
+                }
+
+                msg.innerText = "Profile securely saved! Redirecting...";
+                msg.style.color = "#10b981";
+                
+                setTimeout(() => {
+                    window.location.replace('../dashboard/index.html');
+                }, 1000);
+
+            } catch (err) {
+                console.error("Database Error:", err);
+                msg.innerText = "Error: " + (err.message || "Failed to save profile.");
+                msg.style.color = "red";
+                btn.innerText = 'Save Profile & Continue';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
